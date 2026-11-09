@@ -1,4 +1,8 @@
 import {
+  DocumentSegment,
+  NormalizedPoint,
+  OutputKey,
+  VerificationCitation,
   VerificationDecision,
   VerificationResult,
   UpstageJobResponse,
@@ -97,6 +101,7 @@ export function parseMultilineKeyValueContent(content: string): {
   reason?: string;
   sourceReference?: string;
   missingDocuments?: string[];
+  annotatedFields?: Partial<Record<OutputKey, string>>;
   matchedAnyKey: boolean;
 } {
   // Unwrap if the entire content string is a JSON-encoded string (e.g. "\"scene_id: SC-001\\ndecision: 일치...\"")
@@ -174,6 +179,30 @@ export function parseMultilineKeyValueContent(content: string): {
     return undefined;
   };
 
+  // Same lookup as getJoined but keeps the `【†n】` citation markers.
+  const getJoinedAnnotated = (keys: string[]) => {
+    for (const k of keys) {
+      const val = extracted[k.toLowerCase()];
+      if (val && val.length > 0) {
+        return val.join("\n").trim();
+      }
+    }
+    return undefined;
+  };
+
+  const annotatedFields: Partial<Record<OutputKey, string>> = {};
+  const annotatedSources: [OutputKey, string[]][] = [
+    ["scene_id", ["scene_id", "sceneid"]],
+    ["decision", ["decision"]],
+    ["reason", ["reason"]],
+    ["source_reference", ["source_reference", "sourcereference"]],
+    ["missing_documents", ["missing_documents", "missingdocuments"]],
+  ];
+  for (const [outputKey, aliases] of annotatedSources) {
+    const value = getJoinedAnnotated(aliases);
+    if (value !== undefined) annotatedFields[outputKey] = value;
+  }
+
   const sceneId = getJoined(["scene_id", "sceneid"]);
   const decisionRaw = getJoined(["decision"]);
   const reason = getJoined(["reason"]);
@@ -187,8 +216,89 @@ export function parseMultilineKeyValueContent(content: string): {
     sourceReference,
     missingDocuments:
       missingDocsRaw !== undefined ? parseMissingDocuments(missingDocsRaw) : undefined,
+    annotatedFields,
     matchedAnyKey: true,
   };
+}
+
+function toNormalizedPoint(raw: unknown): NormalizedPoint | null {
+  if (!raw || typeof raw !== "object") return null;
+  const { x, y } = raw as { x?: unknown; y?: unknown };
+  if (typeof x !== "number" || typeof y !== "number") return null;
+  return { x, y };
+}
+
+function toPolygon(raw: unknown): NormalizedPoint[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(toNormalizedPoint)
+    .filter((p): p is NormalizedPoint => p !== null);
+}
+
+/**
+ * Reads `additional_values.citations` as returned by the Instruct step.
+ * Entries without a numeric `index` are dropped; nothing is inferred.
+ */
+export function parseCitations(raw: unknown): VerificationCitation[] {
+  if (!Array.isArray(raw)) return [];
+  const citations: VerificationCitation[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const c = item as Record<string, unknown>;
+    if (typeof c.index !== "number") continue;
+    citations.push({
+      index: c.index,
+      sourceType: typeof c.source_type === "string" ? c.source_type : "",
+      sourceRef:
+        typeof c.source_ref === "string" || typeof c.source_ref === "number"
+          ? String(c.source_ref)
+          : "",
+      page: typeof c.page === "number" ? c.page : null,
+      coordinates: toPolygon(c.coordinates),
+      wordCoordinates: Array.isArray(c.word_coordinates)
+        ? c.word_coordinates.map(toPolygon).filter((poly) => poly.length > 0)
+        : [],
+    });
+  }
+  return citations.sort((a, b) => a.index - b.index);
+}
+
+function toPageRanges(raw: unknown): [number, number][] {
+  if (!Array.isArray(raw)) return [];
+  const ranges: [number, number][] = [];
+  for (const r of raw) {
+    if (
+      Array.isArray(r) &&
+      r.length === 2 &&
+      typeof r[0] === "number" &&
+      typeof r[1] === "number"
+    ) {
+      ranges.push([r[0], r[1]]);
+    }
+  }
+  return ranges;
+}
+
+/**
+ * Reads `additional_values.merge.items`: which pages Classify assigned to
+ * which document type. Pages that went to no branch (e.g. very_others)
+ * do not appear here.
+ */
+export function parseDocumentSegments(raw: unknown): DocumentSegment[] {
+  if (!raw || typeof raw !== "object") return [];
+  const items = (raw as { items?: unknown }).items;
+  if (!Array.isArray(items)) return [];
+  const segments: DocumentSegment[] = [];
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const i = item as { document_type?: unknown; page_ranges?: unknown };
+    if (typeof i.document_type !== "string") continue;
+    segments.push({
+      documentType: i.document_type,
+      pageRanges: toPageRanges(i.page_ranges),
+    });
+  }
+  return segments;
 }
 
 /**
@@ -347,6 +457,9 @@ export function parseVerificationResponse(
   const finalMissingDocuments =
     kvParsed.missingDocuments ?? directMissing ?? [];
 
+  const citations = parseCitations(parsedAdditionalValues?.citations);
+  const documentSegments = parseDocumentSegments(parsedAdditionalValues?.merge);
+
   const isUnstructuredFallback =
     !kvParsed.matchedAnyKey && !directReason && !directSceneId && Boolean(contentString);
 
@@ -356,6 +469,9 @@ export function parseVerificationResponse(
     reason: finalReason,
     sourceReference: finalSourceReference,
     missingDocuments: finalMissingDocuments,
+    annotatedFields: kvParsed.annotatedFields,
+    citations,
+    documentSegments,
     rawContent: contentString || JSON.stringify(jobResponse, null, 2),
     rawMetadata: metadata ? { enum: metadata.enum } : undefined,
     isUnstructuredFallback,
