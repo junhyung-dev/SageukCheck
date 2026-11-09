@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-hanji: #F7F4ED;
+    --text-ink: #252923;
+    --primary-pine: #29493D;
+    --accent-cinnabar: #A7473D;
+    --border-archive: #DDD6C9;
+    --card-bg: #FFFFFF;
+  }
+
+  body {
+    background-color: #F7F4ED;
+    color: #252923;
+    font-feature-settings: "ss01", "ss02";
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Subtle traditional book-frame corner ornament */
+.archive-corner-frame {
+  position: relative;
+}
+
+.archive-corner-frame::before,
+.archive-corner-frame::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: #C5BBAE;
+}
+
+.archive-corner-frame::before {
+  top: 6px;
+  left: 6px;
+  border-top: 1px solid #C5BBAE;
+  border-left: 1px solid #C5BBAE;
+}
+
+.archive-corner-frame::after {
+  bottom: 6px;
+  right: 6px;
+  border-bottom: 1px solid #C5BBAE;
+  border-right: 1px solid #C5BBAE;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EFEAE0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C5BBAE;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #868C81;
+}
+
+/* Print optimization for report saving */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
