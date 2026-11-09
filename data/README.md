@@ -8,7 +8,7 @@
 | 폴더 | 내용 |
 |---|---|
 | `mission2/` | 미션 2 제출본. 정답지와 데이터셋 5건(set01~05, 문서 10건) |
-| `final/` | 최종 제출본. 정답지 `경크크_최종제출_answer.json`과 PDF 15개(set01~15, 문서 31건). 현황은 `docs/FINAL_REVIEW.md` |
+| `final/` | 최종 제출본. 정답지 `경크크_최종제출_answer.json`과 PDF 18개(set01~18, 문서 39건). 현황은 `docs/FINAL_REVIEW.md` |
 
 ## 규칙
 
