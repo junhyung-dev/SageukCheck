@@ -1,8 +1,9 @@
 import { UpstageJobResponse } from "@/types/verification";
 
 const UPSTAGE_BASE_URL = "https://api.upstage.ai/v2";
-const DEFAULT_AGENT_ID = "agt_BeWFUxUXkK7tzMpxscYduZ";
-const DEFAULT_CONFIG_ID = "1";
+// 최종 워크플로우 `최종_사극체크` config 4 (라이브러리 게시 · 제출 JSON과 같은 버전)
+const DEFAULT_AGENT_ID = "agt_bRU6jFjmhXuXGi8KLZucvp";
+const DEFAULT_CONFIG_ID = "4";
 
 export class UpstageApiError extends Error {
   public statusCode: number;
@@ -144,7 +145,8 @@ export async function uploadFileToUpstage(
  */
 export async function createVerificationJob(
   fileId: string,
-  timeoutMs = 30_000
+  // 30초에서는 동시 실행 중 응답이 늦어 끊긴 적이 있다 (docs/UPSTAGE_API.md 1절)
+  timeoutMs = 120_000
 ): Promise<UpstageJobResponse> {
   const { apiKey, agentId, configId, projectId } = getUpstageConfig();
 

@@ -66,7 +66,13 @@ export interface CreateVerifyApiResponse {
 
 export interface SampleDataset {
   id: string;
+  /** case_id in the answer sheet (A ~ R). */
+  caseId: string;
   code: string;
+  /** decision in the answer sheet for this case. */
+  expectedDecision: VerificationDecision;
+  /** documents in the answer sheet for this case. */
+  documents: string[];
   title: string;
   episode: string;
   era: string;
