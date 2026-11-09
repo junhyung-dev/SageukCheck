@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { SAMPLE_DATASETS } from "@/lib/sample-datasets";
+import { SampleCaseList } from "@/components/samples/SampleCaseList";
 import {
   ArrowRight,
   BookOpen,
@@ -364,19 +364,18 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Sample Datasets Quick Launch Section (set01 ~ set05) */}
+        {/* Final dataset cases (set01 ~ set18) */}
         <section className="py-16 sm:py-20 bg-hanji-dark/25">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold tracking-widest text-pine uppercase">
-                  VERIFICATION TEST CASES · 검증 데이터셋 (Set 01 ~ Set 05)
-                </p>
-                <h2 className="mt-1 font-serif text-2xl font-bold text-ink">
-                  사극 『백성의 글자』 장면별 고증 검수 테스트셋
+                <h2 className="font-serif text-2xl font-bold text-ink">
+                  준비된 18개 장면으로 검수해 보기
                 </h2>
-                <p className="mt-2 text-sm text-ink-muted">
-                  준비된 5종의 테스트 PDF(대본+사료 결합 문서)를 선택하여 실제 Upstage Studio API 워크플로우의 판정 결과를 즉시 검증해 보세요.
+                <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+                  정통 사극과 퓨전 사극 대본에 『조선왕조실록』 기사를 바탕으로 한 사료를 묶은 PDF입니다.
+                  사료 누락, 훼손된 사료, 다른 사건의 사료처럼 판정을 보류해야 하는 장면도 들어 있습니다.
+                  판정별 묶음은 정답지의 기대 판정입니다.
                 </p>
               </div>
               <Link
@@ -388,36 +387,8 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {SAMPLE_DATASETS.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/verify?sample=${item.id}`}
-                  className="group flex flex-col justify-between rounded-sm border border-border bg-hanji-card p-4 shadow-archive transition-all hover:border-pine hover:shadow-archive-md"
-                >
-                  <div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-mono font-bold text-pine">
-                        {item.code}
-                      </span>
-                      <span className="rounded-sm bg-hanji px-2 py-0.5 text-[11px] text-ink-muted border border-border">
-                        {item.pages}쪽
-                      </span>
-                    </div>
-                    <h3 className="mt-2.5 font-serif text-sm font-bold text-ink group-hover:text-pine">
-                      {item.episode}
-                    </h3>
-                    <p className="mt-1 text-[11px] text-ink-light">{item.era}</p>
-                    <p className="mt-2.5 text-xs leading-relaxed text-ink-muted line-clamp-3">
-                      {item.summary}
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-semibold text-pine">
-                    <span>검수 페이지에서 불러오기</span>
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </div>
-                </Link>
-              ))}
+            <div className="mt-10">
+              <SampleCaseList mode="link" />
             </div>
           </div>
         </section>

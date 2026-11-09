@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { VerificationResult } from "@/types/verification";
-import { getVerificationRecommendation } from "@/lib/result-parser";
+import { VerificationCitation, VerificationResult } from "@/types/verification";
+import {
+  getVerificationRecommendation,
+  stripCitationMarkers,
+} from "@/lib/result-parser";
 import {
   CheckCircle2,
   ShieldAlert,
@@ -25,6 +28,57 @@ interface VerificationResultCardProps {
   rawResponse?: unknown;
   fileName: string;
   onReset: () => void;
+  /** Called when the user opens a citation; the viewer shows its page and box. */
+  onCitationSelect?: (citation: VerificationCitation) => void;
+  activeCitationIndex?: number | null;
+}
+
+const CITATION_MARKER = /【†(\d+)】/g;
+
+/**
+ * Renders workflow text with each `【†n】` marker replaced by a page button.
+ * Markers without a matching citation (or without a page) are dropped, never invented.
+ */
+function CitedText({
+  text,
+  citations,
+  activeIndex,
+  onSelect,
+}: {
+  text: string;
+  citations: VerificationCitation[];
+  activeIndex?: number | null;
+  onSelect?: (citation: VerificationCitation) => void;
+}) {
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  for (const match of text.matchAll(CITATION_MARKER)) {
+    const at = match.index ?? 0;
+    if (at > last) parts.push(text.slice(last, at));
+    last = at + match[0].length;
+
+    const citation = citations.find((c) => c.index === Number(match[1]));
+    if (!citation || citation.page === null || !onSelect) continue;
+    const active = activeIndex === citation.index;
+    parts.push(
+      <button
+        key={`c-${at}`}
+        type="button"
+        onClick={() => onSelect(citation)}
+        aria-pressed={active}
+        aria-label={`근거 ${citation.index}: 원문 ${citation.page}쪽에서 보기`}
+        className={`mx-0.5 inline-flex translate-y-[-1px] items-center rounded-sm border px-1.5 align-middle font-sans text-[11px] font-semibold leading-[18px] tabular-nums transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-pine ${
+          active
+            ? "border-ink bg-ink text-white"
+            : "border-border-strong bg-hanji text-ink-muted hover:border-ink hover:text-ink"
+        }`}
+      >
+        {citation.page}쪽
+      </button>
+    );
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
 }
 
 export function VerificationResultCard({
@@ -32,7 +86,16 @@ export function VerificationResultCard({
   rawResponse,
   fileName,
   onReset,
+  onCitationSelect,
+  activeCitationIndex,
 }: VerificationResultCardProps) {
+  const citations = result.citations ?? [];
+  const canCite = Boolean(onCitationSelect) && citations.some((c) => c.page !== null);
+  // Use the marker-annotated text only when it still has words once markers are removed.
+  const withWords = (text?: string) =>
+    text && stripCitationMarkers(text) ? text : undefined;
+  const annotatedReason = withWords(result.annotatedFields?.reason);
+  const annotatedSource = withWords(result.annotatedFields?.source_reference);
   const [copied, setCopied] = useState(false);
   const [showRawDebug, setShowRawDebug] = useState(false);
 
@@ -47,7 +110,7 @@ export function VerificationResultCard({
           badgeBg: "bg-pine-light",
           badgeBorder: "border-pine/40",
           badgeText: "text-pine",
-          headerBorder: "border-l-4 border-l-pine",
+          headerBorder: "border-t-2 border-t-pine",
           icon: <CheckCircle2 className="h-5 w-5 text-pine shrink-0" />,
           sealChar: "合",
         };
@@ -58,7 +121,7 @@ export function VerificationResultCard({
           badgeBg: "bg-cinnabar-light",
           badgeBorder: "border-cinnabar/40",
           badgeText: "text-cinnabar",
-          headerBorder: "border-l-4 border-l-cinnabar",
+          headerBorder: "border-t-2 border-t-cinnabar",
           icon: <ShieldAlert className="h-5 w-5 text-cinnabar shrink-0" />,
           sealChar: "異",
         };
@@ -70,7 +133,7 @@ export function VerificationResultCard({
           badgeBg: "bg-ochre-light",
           badgeBorder: "border-ochre-border",
           badgeText: "text-ochre",
-          headerBorder: "border-l-4 border-l-ochre",
+          headerBorder: "border-t-2 border-t-ochre",
           icon: <AlertTriangle className="h-5 w-5 text-ochre shrink-0" />,
           sealChar: "考",
         };
@@ -121,7 +184,7 @@ export function VerificationResultCard({
       <div className="archive-corner-frame rounded-sm border border-border bg-hanji-card p-6 sm:p-8 shadow-archive-md">
         {/* Top Header: Scene ID & Decision Badge */}
         <div
-          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6 pl-4 ${decisionConfig.headerBorder}`}
+          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pt-5 pb-6 ${decisionConfig.headerBorder}`}
         >
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-ink-muted">
@@ -191,13 +254,29 @@ export function VerificationResultCard({
 
           {/* 1. 판정 근거 (reason) */}
           <section className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-pine">
-              <FileCheck2 className="h-4 w-4" />
-              <span>1. 판정 근거 (검토 내용)</span>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-pine">
+                <FileCheck2 className="h-4 w-4" />
+                <span>1. 판정 근거 (검토 내용)</span>
+              </div>
+              {canCite && annotatedReason && (
+                <span className="text-[11px] text-ink-muted">
+                  쪽 표시를 누르면 왼쪽 원문에서 근거 위치를 짚어 줍니다
+                </span>
+              )}
             </div>
             <div className="rounded-sm border border-border bg-hanji/35 p-4 sm:p-5">
-              <p className="whitespace-pre-line font-serif text-sm sm:text-[15px] leading-relaxed text-ink">
-                {result.reason}
+              <p className="whitespace-pre-line font-serif text-sm sm:text-[15px] leading-[1.85] text-ink">
+                {canCite && annotatedReason ? (
+                  <CitedText
+                    text={annotatedReason}
+                    citations={citations}
+                    activeIndex={activeCitationIndex}
+                    onSelect={onCitationSelect}
+                  />
+                ) : (
+                  result.reason
+                )}
               </p>
             </div>
           </section>
@@ -209,8 +288,17 @@ export function VerificationResultCard({
               <span>2. 역사 사료 출처</span>
             </div>
             <div className="rounded-sm border border-border bg-hanji-card p-4">
-              <p className="font-serif text-sm font-semibold text-ink">
-                {result.sourceReference}
+              <p className="font-serif text-sm font-semibold leading-relaxed text-ink">
+                {canCite && annotatedSource ? (
+                  <CitedText
+                    text={annotatedSource}
+                    citations={citations}
+                    activeIndex={activeCitationIndex}
+                    onSelect={onCitationSelect}
+                  />
+                ) : (
+                  result.sourceReference
+                )}
               </p>
               <p className="mt-1 text-[11px] text-ink-muted">
                 ※ 제출된 문서 내에서 AI 워크플로우가 확인한 사료 출처 표기입니다.

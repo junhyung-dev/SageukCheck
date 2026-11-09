@@ -52,3 +52,6 @@ Thumbs.db
 
 # Windows download markers
 *:Zone.Identifier
+
+# impeccable 화면 캡처 (런타임 산출물)
+.impeccable/review/

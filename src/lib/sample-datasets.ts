@@ -1,4 +1,11 @@
-import { SampleDataset } from "@/types/verification";
+import { SampleDataset, VerificationDecision } from "@/types/verification";
+
+/** File name used when a sample is loaded for upload (same as the dataset file). */
+export function sampleUploadName(sample: SampleDataset): string {
+  return `경크크_최종제출_${sample.id}.pdf`;
+}
+
+export const DECISION_ORDER: VerificationDecision[] = ["일치", "충돌", "검토 필요"];
 
 /**
  * 최종 제출 데이터셋 18케이스 (data/final/, 정답지 경크크_최종제출_answer.json).
