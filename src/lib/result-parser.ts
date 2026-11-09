@@ -477,35 +477,3 @@ export function parseVerificationResponse(
     isUnstructuredFallback,
   };
 }
-
-/**
- * Generates a strict, non-hallucinating recommendation based purely on the verification result.
- */
-export function getVerificationRecommendation(result: VerificationResult): string {
-  const hasMissingDocs = result.missingDocuments.length > 0;
-  const sourceUnidentified =
-    !result.sourceReference ||
-    result.sourceReference === "확인된 사료 출처 표기 없음" ||
-    result.sourceReference.toLowerCase() === "none" ||
-    result.sourceReference === "없음";
-
-  if (result.decision === "충돌") {
-    return "제공된 역사 사료와 대본의 서술 사이에 상충되는 내용이 확인되었습니다. 제시된 사료 출처와 판정 근거를 바탕으로 해당 장면의 사실관계 수정을 권고합니다.";
-  }
-
-  if (result.decision === "검토 필요") {
-    if (hasMissingDocs) {
-      return `고증 판정을 위한 필수 자료(${result.missingDocuments.join(", ")})가 누락되었거나 확인되지 않습니다. 해당 사료를 보완하여 재검수를 진행하시기 바랍니다.`;
-    }
-    if (sourceUnidentified) {
-      return "제출된 문서 내에서 대본의 주장을 뒷받침하거나 반박할 명확한 사료 기록이 식별되지 않았습니다. 원문 사료의 판독 상태나 추가 사료 여부를 확인해 주세요.";
-    }
-    return "제공된 사료만으로 대본의 역사적 사실 일치 여부를 단정하기 어렵습니다. 판정 근거를 참고하여 역사 고증 담당자의 추가 확인을 권고합니다.";
-  }
-
-  // 일치
-  if (hasMissingDocs) {
-    return `제공된 사료 범위 내에서는 대본의 서술이 역사 기록과 부합하나, 누락된 문서(${result.missingDocuments.join(", ")})가 존재하므로 최종 반영 전 확인을 권장합니다.`;
-  }
-  return "대본에 기술된 주요 인물·사건·시기가 제출된 역사 사료의 기록과 부합합니다. 제시된 사료 출처를 고증 근거 자료로 보관하실 수 있습니다.";
-}

@@ -471,7 +471,7 @@ export function PdfDocumentViewer({ file, segments, focus }: PdfDocumentViewerPr
         {loadingPdf ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-xs text-ink-muted">
             <Loader2 className="h-6 w-6 animate-spin text-pine" />
-            <span>원본 PDF 문서를 불러오는 중입니다...</span>
+            <span>PDF를 불러오고 있어요</span>
           </div>
         ) : useNativeFallback && objectUrl ? (
           <iframe

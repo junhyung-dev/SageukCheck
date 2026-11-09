@@ -19,11 +19,10 @@
 - **강건한 AI 응답 파싱 (`result-parser.ts`)**:
   - `metadata.enum` 판정값 최우선 반영 및 `content` 다중 줄 키-값 문자열(`scene_id`, `decision`, `reason`, `source_reference`, `missing_documents`) 정밀 파싱
   - 여러 줄로 구성된 `reason`, 문자열/배열 혼합 형태의 `missing_documents`, 비정형 응답에 대한 방어적 정규화
-  - AI가 제공하지 않은 역사적 사실이나 출처를 임의로 지어내지 않는(Non-hallucinating) 검토 권고문 생성
   - `additional_values.citations`(인용 표시 `【†n】`별 근거 페이지 · 좌표)와 `additional_values.merge`(Classify가 나눈 문서별 페이지 범위)를 그대로 전달. 응답 본문은 `【†n】` 표시를 남긴 형태(`annotatedFields`)로도 전달해 근거 위치와 연결할 수 있음
 - **Modern Korean Historical Archive 디자인**:
   - 한지(`#F7F4ED`), 먹색(`#252923`), 송엽색(`#29493D`), 인주 적갈색(`#A7473D`) 컬러 팔레트와 명조(`Noto Serif KR`)·본고딕(`Noto Sans KR`) 타이포그래피 조화
-  - 좌우 2단 대조 레이아웃: 왼쪽 원본 PDF 뷰어(페이지 이동, 확대/축소, 전체 페이지 보기) + 오른쪽 고증 검수 보고서(결과 복사, 인쇄/PDF 저장, 원본 JSON 디버그 뷰어)
+  - 좌우 2단 대조 레이아웃: 왼쪽 원본 PDF 뷰어(페이지 이동, 확대/축소, 전체 페이지 보기) + 오른쪽 판정 결과(판정 근거, 사료 출처, 빠진 문서, 결과 복사, 인쇄). 원본 응답 디버그는 `/verify?debug=1`일 때만 보인다
 - **최종 데이터셋 18케이스 (`set01` ~ `set18`) 내장**:
   - `data/final/`의 PDF와 같은 파일을 `public/samples/`에 두고, 웹 UI에서 `SC-001` ~ `SC-018`을 불러와 워크플로우를 실행할 수 있음
 
@@ -62,9 +61,9 @@ src/
     upload/
       PdfUploadPanel.tsx     # 드래그 앤 드롭 PDF 업로드 및 샘플 원클릭 로더
     analysis/
-      AnalysisProgressPanel.tsx # 실제 API 상태(uploading/queued/in_progress/completed) 표시 화면
+      AnalysisProgressPanel.tsx # 분석 진행 화면 (단계 3칸, 경과 시간, 실패 시 다시 시도)
     results/
-      VerificationResultCard.tsx # 고증 판정(일치/충돌/검토 필요) 카드, 복사/인쇄, 디버그 아코디언
+      VerificationResultCard.tsx # 판정(일치/충돌/검토 필요) 카드, 복사/인쇄, ?debug=1 디버그
     pdf/
       PdfDocumentViewer.tsx  # PDF 원본 미리보기, 페이지 이동, 확대/축소, 전체 페이지 열람
   lib/

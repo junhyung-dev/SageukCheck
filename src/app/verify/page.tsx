@@ -19,7 +19,7 @@ import {
   VerificationCitation,
   VerificationResult,
 } from "@/types/verification";
-import { ArrowLeft, BookOpen, FileText } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 
 type ViewStep = "upload" | "analyzing" | "result";
 
@@ -29,11 +29,11 @@ const MAX_POLL_TIME_SECONDS = 300; // 5 minutes timeout guard
 function VerifyWorkspaceContent() {
   const searchParams = useSearchParams();
   const sampleParam = searchParams.get("sample");
+  const debugParam = searchParams.get("debug") === "1";
 
   const [viewStep, setViewStep] = useState<ViewStep>("upload");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [jobStatus, setJobStatus] = useState<JobStatus>("uploading");
-  const [jobId, setJobId] = useState<string | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -110,7 +110,7 @@ function VerifyWorkspaceContent() {
           clearTimers();
           setJobStatus("failed");
           setErrorMessage(
-            "워크플로우 분석 응답 대기 시간이 초과되었습니다(5분). 네트워크 또는 Upstage Studio 상태를 확인 후 다시 시도해 주세요."
+            "5분이 지나도 결과가 오지 않았어요. 잠시 뒤 다시 시도해 주세요."
           );
         }
       }, 1000);
@@ -137,7 +137,7 @@ function VerifyWorkspaceContent() {
             setJobStatus("failed");
             setErrorMessage(
               data.error ||
-                `작업 상태 조회 중 오류가 발생했습니다 (HTTP ${res.status}).`
+                `진행 상황을 확인하지 못했어요. 다시 시도해 주세요. (오류 코드 ${res.status})`
             );
             return;
           }
@@ -147,7 +147,7 @@ function VerifyWorkspaceContent() {
             setJobStatus("failed");
             setErrorMessage(
               data.error ||
-                "Upstage Studio 워크플로우 작업이 실패(failed) 상태로 종료되었습니다."
+                "워크플로우가 판정을 끝내지 못했어요. 다시 시도해 주세요."
             );
             return;
           }
@@ -157,7 +157,7 @@ function VerifyWorkspaceContent() {
             if (!data.result) {
               setJobStatus("failed");
               setErrorMessage(
-                "분석은 완료되었으나 결과 데이터를 생성하지 못했습니다."
+                "분석은 끝났지만 결과를 읽지 못했어요. 다시 시도해 주세요."
               );
               return;
             }
@@ -170,11 +170,10 @@ function VerifyWorkspaceContent() {
 
           // queued or in_progress
           setJobStatus(data.status);
-        } catch (err) {
-          // Network hiccup during polling: surface if persistent
-          setErrorMessage(
-            `상태 조회 중 일시적인 통신 오류가 발생했습니다: ${(err as Error).message}`
-          );
+          setErrorMessage(null);
+        } catch {
+          // 일시적인 연결 끊김: 작업은 계속 확인하고, 화면에는 알림만 띄운다.
+          setErrorMessage("연결이 잠깐 끊겼어요. 계속 확인하고 있어요.");
         }
       };
 
@@ -196,7 +195,6 @@ function VerifyWorkspaceContent() {
     setRawApiResponse(null);
     setCitationFocus(null);
     setElapsedSeconds(0);
-    setJobId(null);
     setFileId(null);
     setJobStatus("uploading");
     setViewStep("analyzing");
@@ -218,21 +216,19 @@ function VerifyWorkspaceContent() {
         setJobStatus("failed");
         setErrorMessage(
           data.error ||
-            `문서 업로드 및 분석 요청에 실패했습니다 (상태 코드: ${response.status}).`
+            `문서를 보내지 못했어요. 다시 시도해 주세요. (오류 코드 ${response.status})`
         );
         return;
       }
 
-      setJobId(data.jobId);
       setFileId(data.fileId);
       setJobStatus(data.status === "in_progress" ? "in_progress" : "queued");
 
       startPollingJob(data.jobId, data.fileId);
-    } catch (err) {
+    } catch {
       setJobStatus("failed");
       setErrorMessage(
-        (err as Error).message ||
-          "서버와 통신하는 중 오류가 발생했습니다. 네트워크 연결을 확인해 주세요."
+        "서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요."
       );
     }
   };
@@ -241,12 +237,22 @@ function VerifyWorkspaceContent() {
     clearTimers();
     setViewStep("upload");
     setJobStatus("uploading");
-    setJobId(null);
     setFileId(null);
     setErrorMessage(null);
     setVerificationResult(null);
     setRawApiResponse(null);
     setCitationFocus(null);
+  };
+
+  const handleLeaveAnalysis = () => {
+    const isRunning = viewStep === "analyzing" && jobStatus !== "failed";
+    if (
+      isRunning &&
+      !window.confirm("분석을 그만두고 문서 고르기로 돌아갈까요? 지금 분석 결과는 받을 수 없어요.")
+    ) {
+      return;
+    }
+    handleResetToUpload();
   };
 
   return (
@@ -257,24 +263,17 @@ function VerifyWorkspaceContent() {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4 no-print">
             <button
               type="button"
-              onClick={handleResetToUpload}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-ink transition-colors"
+              onClick={handleLeaveAnalysis}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-ink transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>문서 다시 선택하기</span>
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              <span>다른 문서 고르기</span>
             </button>
 
-            <div className="flex items-center gap-3 text-xs text-ink-muted">
-              <span className="inline-flex items-center gap-1.5 font-medium text-ink">
-                <FileText className="h-3.5 w-3.5 text-pine" />
-                {selectedFile?.name}
-              </span>
-              {jobId && (
-                <span className="hidden sm:inline-block font-mono text-[11px] text-ink-light">
-                  Job ID: {jobId}
-                </span>
-              )}
-            </div>
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink">
+              <FileText className="h-4 w-4 text-pine" aria-hidden />
+              {selectedFile?.name}
+            </span>
           </div>
         )}
 
@@ -294,8 +293,6 @@ function VerifyWorkspaceContent() {
         {viewStep === "analyzing" && (
           <AnalysisProgressPanel
             status={jobStatus}
-            fileName={selectedFile?.name || "document.pdf"}
-            jobId={jobId}
             elapsedSeconds={elapsedSeconds}
             errorMessage={errorMessage}
             onRetry={handleStartAnalysis}
@@ -306,21 +303,6 @@ function VerifyWorkspaceContent() {
         {/* STEP 3: Verification Result View (2-Column Desktop Split Layout) */}
         {viewStep === "result" && verificationResult && (
           <div className="space-y-6">
-            {/* Top Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-sm border border-border bg-hanji-card px-5 py-3.5 shadow-archive no-print">
-              <div className="flex items-center gap-2 text-xs text-ink">
-                <BookOpen className="h-4 w-4 text-pine shrink-0" />
-                <span className="font-semibold">
-                  원본 문서와 고증 검수 보고서 대조
-                </span>
-              </div>
-              <span className="text-xs text-ink-muted">
-                {verificationResult.documentSegments && verificationResult.documentSegments.length > 0
-                  ? "뷰어의 쪽 번호는 워크플로우가 나눈 문서별로 묶여 있습니다. 근거의 쪽 표시를 누르면 해당 위치로 이동합니다."
-                  : "왼쪽 뷰어에서 원문을 넘겨보며 오른쪽 판정 근거를 확인하세요."}
-              </span>
-            </div>
-
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
               {/* Left Column: Original PDF Document Viewer */}
               <div ref={viewerRef} className="lg:col-span-6 lg:sticky lg:top-20 scroll-mt-20 no-print">
@@ -337,7 +319,7 @@ function VerifyWorkspaceContent() {
                   result={verificationResult}
                   rawResponse={rawApiResponse}
                   fileName={selectedFile?.name || "document.pdf"}
-                  onReset={handleResetToUpload}
+                  showDebug={debugParam}
                   onCitationSelect={handleCitationSelect}
                   activeCitationIndex={citationFocus?.citation.index ?? null}
                 />
@@ -357,7 +339,7 @@ export default function VerifyPage() {
       <Suspense
         fallback={
           <div className="flex-1 flex items-center justify-center p-12 text-sm text-ink-muted">
-            고증 검수 화면을 준비하는 중입니다...
+            화면을 준비하고 있어요
           </div>
         }
       >
