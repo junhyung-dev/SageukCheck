@@ -84,5 +84,6 @@
 | `docs/UPSTAGE_API.md` | Upstage Studio Agent API 안내 원문과 실제 호출로 확인한 응답 형식 |
 | `docs/VERIFY.md` | 정답지 자동 대조 스크립트(`npm run verify:answers`) 사용법 |
 | `data/README.md` | 정답지 · 데이터셋 폴더 구조와 규칙 |
+| `PRODUCT.md` | 웹 서비스 디자인 작업용 제품 정의: 사용자, 목적, 차별점, 제약, 원칙 (impeccable init) |
 
 - 문서를 추가하면 위 표에 경로와 역할을 함께 적는다.
