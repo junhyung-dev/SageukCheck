@@ -19,7 +19,7 @@ import {
   VerificationCitation,
   VerificationResult,
 } from "@/types/verification";
-import { ArrowLeft, BookOpen, FileText } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 
 type ViewStep = "upload" | "analyzing" | "result";
 
@@ -29,6 +29,7 @@ const MAX_POLL_TIME_SECONDS = 300; // 5 minutes timeout guard
 function VerifyWorkspaceContent() {
   const searchParams = useSearchParams();
   const sampleParam = searchParams.get("sample");
+  const debugParam = searchParams.get("debug") === "1";
 
   const [viewStep, setViewStep] = useState<ViewStep>("upload");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -302,21 +303,6 @@ function VerifyWorkspaceContent() {
         {/* STEP 3: Verification Result View (2-Column Desktop Split Layout) */}
         {viewStep === "result" && verificationResult && (
           <div className="space-y-6">
-            {/* Top Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-sm border border-border bg-hanji-card px-5 py-3.5 shadow-archive no-print">
-              <div className="flex items-center gap-2 text-xs text-ink">
-                <BookOpen className="h-4 w-4 text-pine shrink-0" />
-                <span className="font-semibold">
-                  원본 문서와 고증 검수 보고서 대조
-                </span>
-              </div>
-              <span className="text-xs text-ink-muted">
-                {verificationResult.documentSegments && verificationResult.documentSegments.length > 0
-                  ? "뷰어의 쪽 번호는 워크플로우가 나눈 문서별로 묶여 있습니다. 근거의 쪽 표시를 누르면 해당 위치로 이동합니다."
-                  : "왼쪽 뷰어에서 원문을 넘겨보며 오른쪽 판정 근거를 확인하세요."}
-              </span>
-            </div>
-
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
               {/* Left Column: Original PDF Document Viewer */}
               <div ref={viewerRef} className="lg:col-span-6 lg:sticky lg:top-20 scroll-mt-20 no-print">
@@ -333,7 +319,7 @@ function VerifyWorkspaceContent() {
                   result={verificationResult}
                   rawResponse={rawApiResponse}
                   fileName={selectedFile?.name || "document.pdf"}
-                  onReset={handleResetToUpload}
+                  showDebug={debugParam}
                   onCitationSelect={handleCitationSelect}
                   activeCitationIndex={citationFocus?.citation.index ?? null}
                 />
@@ -353,7 +339,7 @@ export default function VerifyPage() {
       <Suspense
         fallback={
           <div className="flex-1 flex items-center justify-center p-12 text-sm text-ink-muted">
-            고증 검수 화면을 준비하는 중입니다...
+            화면을 준비하고 있어요
           </div>
         }
       >
