@@ -88,8 +88,7 @@ PDF → Parse(OCR force) → Classify 사극문서_분류 (split: CONTINUITY)
 ## 5. `data/final/` 확인 결과 (2026-11-10)
 
 - PDF 15개(`경크크_최종제출_set01~15.pdf`)가 모두 있고, 정답지의 `file` 값과 이름이 일치한다.
-- **정답지 JSON은 아직 `data/final/`에 없다.** 위 사전 점검은 팀 공유 폴더의 정답지를 `--dir data/final`로 지정해 돌렸다.
-- `경크크_최종제출_set04.pdf:Zone.Identifier`는 Windows 다운로드 표시 파일이다. 데이터가 아니므로 지우거나 커밋에서 제외한다.
+- 정답지 `경크크_최종제출_answer.json`도 들어 있고, 팀 공유 폴더의 `SageukCheck_Final_Answer.json`과 같은 파일이다. 사전 점검 오류 · 경고 없음.
 
 | 파일 | 확인 내용 |
 |---|---|
