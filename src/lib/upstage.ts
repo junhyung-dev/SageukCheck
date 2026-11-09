@@ -143,7 +143,8 @@ export async function uploadFileToUpstage(
  * Step 2: Create Agent Job (`POST https://api.upstage.ai/v2/responses`)
  */
 export async function createVerificationJob(
-  fileId: string
+  fileId: string,
+  timeoutMs = 30_000
 ): Promise<UpstageJobResponse> {
   const { apiKey, agentId, configId, projectId } = getUpstageConfig();
 
@@ -163,7 +164,7 @@ export async function createVerificationJob(
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${UPSTAGE_BASE_URL}/responses`, {

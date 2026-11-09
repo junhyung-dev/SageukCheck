@@ -46,3 +46,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Answer verification reports (scripts/verify-answers.ts)
+/verify-reports/

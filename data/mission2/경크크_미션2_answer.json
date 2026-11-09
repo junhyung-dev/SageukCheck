@@ -1,0 +1,95 @@
+{
+  "task": "사극 대본 역사 고증 1차 검수 (사극체크)",
+  "unit": "대본 장면 1개 = PDF 1개 = 판정 1건",
+  "output_keys": [
+    "scene_id",
+    "decision",
+    "reason",
+    "source_reference",
+    "missing_documents"
+  ],
+  "decision_values": [
+    "일치",
+    "충돌",
+    "검토 필요"
+  ],
+  "cases": [
+    {
+      "case_id": "A",
+      "file": "경크크_미션2_set01.pdf",
+      "documents": [
+        "사극 촬영 대본",
+        "역사 사료"
+      ],
+      "answer": {
+        "scene_id": "SC-001",
+        "decision": "일치",
+        "reason": "세종 25년(1443년)에 세종이 직접 언문 28자를 만들었다는 대본의 주장은 세종실록의 창제 기록과 일치한다.",
+        "source_reference": "세종실록 102권, 세종 25년 12월 30일 (1443년), kda_12512030_002",
+        "missing_documents": []
+      }
+    },
+    {
+      "case_id": "B",
+      "file": "경크크_미션2_set02.pdf",
+      "documents": [
+        "사극 촬영 대본",
+        "역사 사료"
+      ],
+      "answer": {
+        "scene_id": "SC-002",
+        "decision": "충돌",
+        "reason": "대본은 최만리가 언문 제작을 적극 찬성하는 상소를 올렸다고 주장하지만, 세종실록에는 최만리 등이 언문 제작의 부당함을 아뢰는 반대 상소를 올렸다고 기록되어 있다.",
+        "source_reference": "세종실록 103권, 세종 26년 2월 20일 (1444년), 기사 ID: kda_12602020_001",
+        "missing_documents": []
+      }
+    },
+    {
+      "case_id": "C",
+      "file": "경크크_미션2_set03.pdf",
+      "documents": [
+        "사극 촬영 대본",
+        "역사 사료",
+        "역사 고증 검토 요청서"
+      ],
+      "answer": {
+        "scene_id": "SC-003",
+        "decision": "일치",
+        "reason": "대본의 세종 28년(1446년) 9월 《훈민정음》이 이루어졌다는 주장은 세종실록의 해당 기사 및 원문 「是月, 訓民正音成」과 일치한다.",
+        "source_reference": "세종실록 113권, 세종 28년 9월 29일 (1446년), kda_12809029_004",
+        "missing_documents": []
+      }
+    },
+    {
+      "case_id": "D",
+      "file": "경크크_미션2_set04.pdf",
+      "documents": [
+        "사극 촬영 대본",
+        "역사 사료"
+      ],
+      "answer": {
+        "scene_id": "SC-004",
+        "decision": "검토 필요",
+        "reason": "대본에 최항과 박팽년에게 언문으로 《운회》를 번역하게 했다는 주장이 있지만, 제출된 역사 사료의 핵심 원문과 국문이 손상되어 사건과 인물을 확인하거나 반박할 수 없다.",
+        "source_reference": "국사편찬위원회 『조선왕조실록』 (원본 표제 및 기사번호는 스캔에서 식별 불가)",
+        "missing_documents": []
+      }
+    },
+    {
+      "case_id": "E",
+      "file": "경크크_미션2_set05.pdf",
+      "documents": [
+        "사극 촬영 대본"
+      ],
+      "answer": {
+        "scene_id": "SC-005",
+        "decision": "검토 필요",
+        "reason": "대본에는 세종이 최항과 박팽년 등에게 《운회》 번역을 명했다는 주장이 있지만, 필수 역사 사료가 첨부되지 않아 근거 대조가 불가능하다.",
+        "source_reference": "",
+        "missing_documents": [
+          "역사 사료"
+        ]
+      }
+    }
+  ]
+}

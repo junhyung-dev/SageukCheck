@@ -58,7 +58,13 @@
 - 변경 후 최소한 다음을 실행하고 결과를 확인한다.
   - `npm run lint`
   - `npm run build`
-- 워크플로우나 파서를 바꾸면 전체 테스트 문서를 다시 실행해 정답지와 비교한다.
+- 워크플로우, 파서, 정답지를 바꾸면 정답지 대조 스크립트로 전체 케이스를 다시 실행해 비교한다. 사용법은 [`docs/VERIFY.md`](docs/VERIFY.md).
+  - 정답지만 바꿨으면 먼저 `npm run verify:answers -- --answer <정답지> --check-only`
+  - API 실행은 사용량과 시간(1건 약 5분)이 들므로 필요한 케이스만 `--cases`로 돌릴 수 있다.
+
+### API 키
+- `UPSTAGE_API_KEY`는 환경 변수(`.env`, `.env.local`, 터미널)에서만 읽는다. 코드, 문서, 이슈, 채팅에 키를 직접 쓰지 않고, 키를 붙여 달라고 요청하지 않는다.
+- API 호출 규칙과 실제 응답 형식은 [`docs/UPSTAGE_API.md`](docs/UPSTAGE_API.md)를 따른다.
 - 테스트가 실패하거나 일부 단계를 건너뛰었다면 그 사실을 그대로 보고한다.
 
 ## 4. 불명확할 때
@@ -73,5 +79,8 @@
 | `docs/EVALUATION.md` | 해커톤 1차 온라인 심사 기준(원문), 다른 운영진 자료로 확인된 보충 사항, 팀 작업 지침 |
 | `docs/SUBMISSION.md` | 운영진 산출물 제출 가이드와 미션 2 보완 피드백 요약: 일정, 산출물 8종, 파일 이름, 작성 규칙 |
 | `docs/MISSION2_REVIEW.md` | 미션 2 산출물(워크플로우, 데이터셋, 정답지, 유형표, 설계서) 현황과 최종 제출 전 고칠 점 |
+| `docs/UPSTAGE_API.md` | Upstage Studio Agent API 안내 원문과 실제 호출로 확인한 응답 형식 |
+| `docs/VERIFY.md` | 정답지 자동 대조 스크립트(`npm run verify:answers`) 사용법 |
+| `data/README.md` | 정답지 · 데이터셋 폴더 구조와 규칙 |
 
 - 문서를 추가하면 위 표에 경로와 역할을 함께 적는다.
