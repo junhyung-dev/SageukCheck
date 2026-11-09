@@ -20,6 +20,7 @@ export function getUpstageConfig() {
   const apiKey = process.env.UPSTAGE_API_KEY?.trim();
   const agentId = process.env.UPSTAGE_AGENT_ID?.trim() || DEFAULT_AGENT_ID;
   const configId = process.env.UPSTAGE_CONFIG_ID?.trim() || DEFAULT_CONFIG_ID;
+  const projectId = process.env.UPSTAGE_PROJECT_ID?.trim() || undefined;
 
   if (!apiKey || apiKey === "up_your_api_key_here") {
     throw new UpstageApiError(
@@ -29,7 +30,25 @@ export function getUpstageConfig() {
     );
   }
 
-  return { apiKey, agentId, configId };
+  return { apiKey, agentId, configId, projectId };
+}
+
+/**
+ * Builds auth headers for every Upstage request.
+ * Agents that belong to a Studio Project require `x-project-id` on file upload,
+ * job creation and polling; files uploaded without it are stored outside the
+ * Project and cannot be used by the agent.
+ */
+function buildUpstageHeaders(
+  apiKey: string,
+  projectId?: string,
+  extra: Record<string, string> = {}
+): Record<string, string> {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    ...(projectId ? { "x-project-id": projectId } : {}),
+    ...extra,
+  };
 }
 
 function mapStatusToKoreanMessage(status: number, detail?: string): string {
@@ -62,7 +81,7 @@ export async function uploadFileToUpstage(
   fileName: string,
   mimeType = "application/pdf"
 ): Promise<{ id: string }> {
-  const { apiKey } = getUpstageConfig();
+  const { apiKey, projectId } = getUpstageConfig();
 
   const formData = new FormData();
   const uint8Array = new Uint8Array(fileBuffer);
@@ -76,9 +95,7 @@ export async function uploadFileToUpstage(
   try {
     const response = await fetch(`${UPSTAGE_BASE_URL}/files`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: buildUpstageHeaders(apiKey, projectId),
       body: formData,
       signal: controller.signal,
       cache: "no-store",
@@ -128,7 +145,7 @@ export async function uploadFileToUpstage(
 export async function createVerificationJob(
   fileId: string
 ): Promise<UpstageJobResponse> {
-  const { apiKey, agentId, configId } = getUpstageConfig();
+  const { apiKey, agentId, configId, projectId } = getUpstageConfig();
 
   const payload: Record<string, unknown> = {
     model: agentId,
@@ -151,10 +168,9 @@ export async function createVerificationJob(
   try {
     const response = await fetch(`${UPSTAGE_BASE_URL}/responses`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
+      headers: buildUpstageHeaders(apiKey, projectId, {
         "Content-Type": "application/json",
-      },
+      }),
       body: JSON.stringify(payload),
       signal: controller.signal,
       cache: "no-store",
@@ -204,7 +220,7 @@ export async function createVerificationJob(
 export async function retrieveVerificationJob(
   jobId: string
 ): Promise<UpstageJobResponse> {
-  const { apiKey } = getUpstageConfig();
+  const { apiKey, projectId } = getUpstageConfig();
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25_000);
@@ -216,9 +232,7 @@ export async function retrieveVerificationJob(
 
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: buildUpstageHeaders(apiKey, projectId),
       signal: controller.signal,
       cache: "no-store",
     });
@@ -260,12 +274,10 @@ export async function retrieveVerificationJob(
 export async function deleteUpstageFile(fileId: string): Promise<void> {
   if (!fileId) return;
   try {
-    const { apiKey } = getUpstageConfig();
+    const { apiKey, projectId } = getUpstageConfig();
     await fetch(`${UPSTAGE_BASE_URL}/files/${encodeURIComponent(fileId)}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: buildUpstageHeaders(apiKey, projectId),
       cache: "no-store",
     });
   } catch {
