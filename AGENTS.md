@@ -45,7 +45,7 @@
 ### 데이터
 - 정답지는 원본 문서와 직접 대조해 작성하고 검증한다.
 - 정상 입력뿐 아니라 사료 누락, 대본과 사료의 불일치 같은 예외 입력도 실제 문서로 확인한다.
-- `public/samples/`의 set04는 정답지 기준 파일과 다른 버전이다. 샘플을 쓰기 전에 [`docs/MISSION2_REVIEW.md`](docs/MISSION2_REVIEW.md) 4절을 확인한다.
+- `public/samples/setNN.pdf`는 `data/final/경크크_최종제출_setNN.pdf`와 같은 파일이다(최종 정답지 기준). 미션 2 set04는 다른 버전이므로 미션 2 데이터를 쓸 때는 [`docs/MISSION2_REVIEW.md`](docs/MISSION2_REVIEW.md) 4절을 확인한다.
 - 데이터셋 문서, 설계서, 정답지에 평가와 관련된 문구를 넣지 않는다.
 
 ### 제출물 일관성

@@ -2,7 +2,7 @@
 
 다음 세션이 이어서 작업할 수 있도록 현재 상태를 정리한다. 작업을 이어가면 이 문서를 갱신한다.
 
-- 마지막 갱신: 2026-11-10 04:30 KST
+- 마지막 갱신: 2026-11-10 (서비스 데이터 · 연결 정리)
 - **최종 제출 마감: 2026-11-10(화) 17시, 구글폼**
 
 ## 1. 지금까지 한 일
@@ -48,6 +48,8 @@
 4. (완료) 유형표 39줄, 설계서 세 곳 수정 → `submission/` (#6, #10). 머리글도 `최종 설계서` / `v4 설계서`로 수정함. 남은 선택: 한계 문구(J, 기사 ID 없는 자료)를 2쪽에 넣을지
 4-1. (완료) 유형표 ③ 문서 결합 보완: Q&A 공지상 결합 PDF는 모든 줄에 "③ 문서 결합"을 적어야 한다. 26줄 수정함 ([`FINAL_REVIEW.md`](FINAL_REVIEW.md) 10절)
 5. 산출물 파일 이름을 `경크크_최종제출_*`로 맞추고 데모 영상 · 발표 자료 준비, 구글폼 제출 (#12~#14)
+5-1. 웹 서비스를 최종 워크플로우 · 데이터셋에 맞추기 (#11). 데모는 Vercel 배포를 검토 중. 상세는 6절
+
 6. 프롬프트를 다시 고치면 config 번호가 바뀐다 → `.env` 갱신 → 전체 재실행 → 게시 · 내보내기는 그 config로
 7. 제출 후: [`FINAL_REVIEW.md`](FINAL_REVIEW.md) 9절 후속 설계 과제
 
@@ -57,3 +59,27 @@
 - 1건 실행 시간 약 20초~5분(동시 실행 시 앞쪽이 대기열 때문에 길어짐), 토큰 건당 약 7,000~62,000
 - 스크립트의 실행 요청 타임아웃은 120초(서비스 기본 30초). 30초에서는 동시 실행 중 끊기는 일이 있었다.
 - `.env`가 CRLF 줄바꿈이다. 스크립트 · 서비스는 값을 trim해서 문제없지만, 셸에서 `source .env` 하면 `\r`이 섞인다.
+
+## 6. 웹 서비스 (#11, 데모용)
+
+### 한 것 (UI 파일은 건드리지 않음)
+- `public/samples/`: 미션 2 샘플 5개를 지우고 `data/final/` PDF 18개를 `set01.pdf` ~ `set18.pdf`로 복사 (내용 동일, cmp 확인)
+- `src/lib/sample-datasets.ts`: 18케이스. `caseId` · `code` · `expectedDecision` · `documents`는 정답지 값, 제목 · 시대는 각 PDF 1쪽 머리말에서 옮김
+- `src/lib/upstage.ts`, `.env.example`: 기본값을 `agt_bRU6jFjmhXuXGi8KLZucvp` / config `4`로. 실행 요청 타임아웃 30초 → 120초
+- `src/lib/result-parser.ts`, `src/types/verification.ts`: 응답의 `additional_values.citations`(인용 `【†n】`별 쪽 · 좌표 · 근거 추출 항목)와 `merge.items`(Classify가 나눈 문서 종류별 쪽 범위)를 `citations` · `documentSegments`로, `【†n】`를 남긴 키별 원문을 `annotatedFields`로 함께 반환. 값은 응답 그대로 옮기고 추론하지 않는다
+  - config 4 실행 결과 36건(`verify-reports/final-new-config4`, `fusion-config4`)으로 확인: 판정 · scene_id · missing_documents 36/36 정답과 같음, 본문의 `【†n】` 번호는 모두 `citations`에 있음, 36건 모두 `merge` 있음
+  - `citations.page`는 업로드한 PDF 기준 1부터 시작. 좌표는 쪽 크기 대비 0~1 값(왼쪽 위 기준). `source_type`은 `extract`(추출 항목 경로) 또는 `parse`(Parse 요소 번호)
+- `README.md`, `AGENTS.md`, `data/README.md`의 샘플 설명을 최종 데이터셋 기준으로 수정
+- `npm run build` 통과. `npm run lint`는 저장소에 ESLint 설정이 없어 대화형 설정 질문에서 멈춤(실행 안 됨, 기존부터 그랬음)
+
+### 디자인 단계에서 할 것
+- 화면에 근거 위치(`citations` → PDF 뷰어에서 해당 쪽 이동 · 박스 표시)와 문서 구성(`documentSegments`) 표시
+- UI 하드코딩 정리: 샘플 업로드 파일 이름 `${id}_${code}_백성의글자.pdf`(`verify/page.tsx`, `PdfUploadPanel.tsx`), "set01 ~ set05" 문구(`PdfUploadPanel.tsx`, `page.tsx`), 메인 페이지 예시 카드
+- 파서가 판정을 추측해 채우는 부분 검토: 판정 값이 없으면 `검토 필요`로 채움, `불일치` 글자가 있으면 `충돌`로 바꿈. 화면에서는 "결과를 읽지 못함"으로 표시하는 편이 AGENTS.md 예외 처리 규칙에 맞음
+
+### Vercel 배포 때 확인할 것
+- 환경 변수 4개(`UPSTAGE_API_KEY`, `UPSTAGE_AGENT_ID`, `UPSTAGE_CONFIG_ID`, `UPSTAGE_PROJECT_ID`)를 Vercel 프로젝트 설정에 넣는다. 키는 저장소에 넣지 않는다
+- `/api/verify`는 업로드(최대 60초) + 실행 요청(최대 120초)을 한 함수에서 기다린다. 함수 최대 실행 시간이 이보다 짧으면 중간에 끊긴다. 배포 플랜의 기본값을 확인하고 필요하면 route에 `maxDuration`을 지정한다
+- Vercel 함수 요청 본문 크기 제한이 있다. 샘플 PDF는 최대 788KB라 문제없을 것으로 보이나, 큰 PDF 업로드는 배포 후 확인한다
+- 확인하지 않은 것: 실행 요청에 `include: ["all"]`을 주면 중간 단계(Parse · Classify · Extract) 결과가 오는지
+

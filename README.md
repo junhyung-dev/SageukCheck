@@ -13,18 +13,19 @@
 
 - **실제 Upstage Studio Agents API 연동**:
   - `POST https://api.upstage.ai/v2/files` 로 PDF 문서 업로드 및 `file_id` 발급
-  - `POST https://api.upstage.ai/v2/responses` 로 Studio Agent(`agt_BeWFUxUXkK7tzMpxscYduZ`, `config_id: "1"`) 실행
+  - `POST https://api.upstage.ai/v2/responses` 로 최종 워크플로우 `최종_사극체크`(`agt_bRU6jFjmhXuXGi8KLZucvp`, `config_id: "4"`) 실행. 모든 요청에 `x-project-id` 헤더 포함
   - `GET https://api.upstage.ai/v2/responses/{job_id}?include[]=last` 폴링을 통한 실시간 작업 상태(`queued`, `in_progress`, `completed`, `failed`) 추적
   - 분석 완료 후 업로드된 임시 파일 자동 정리(`DELETE /v2/files/{file_id}`)로 불필요한 장기 저장 방지
 - **강건한 AI 응답 파싱 (`result-parser.ts`)**:
   - `metadata.enum` 판정값 최우선 반영 및 `content` 다중 줄 키-값 문자열(`scene_id`, `decision`, `reason`, `source_reference`, `missing_documents`) 정밀 파싱
   - 여러 줄로 구성된 `reason`, 문자열/배열 혼합 형태의 `missing_documents`, 비정형 응답에 대한 방어적 정규화
   - AI가 제공하지 않은 역사적 사실이나 출처를 임의로 지어내지 않는(Non-hallucinating) 검토 권고문 생성
+  - `additional_values.citations`(인용 표시 `【†n】`별 근거 페이지 · 좌표)와 `additional_values.merge`(Classify가 나눈 문서별 페이지 범위)를 그대로 전달. 응답 본문은 `【†n】` 표시를 남긴 형태(`annotatedFields`)로도 전달해 근거 위치와 연결할 수 있음
 - **Modern Korean Historical Archive 디자인**:
   - 한지(`#F7F4ED`), 먹색(`#252923`), 송엽색(`#29493D`), 인주 적갈색(`#A7473D`) 컬러 팔레트와 명조(`Noto Serif KR`)·본고딕(`Noto Sans KR`) 타이포그래피 조화
   - 좌우 2단 대조 레이아웃: 왼쪽 원본 PDF 뷰어(페이지 이동, 확대/축소, 전체 페이지 보기) + 오른쪽 고증 검수 보고서(결과 복사, 인쇄/PDF 저장, 원본 JSON 디버그 뷰어)
-- **해커톤 테스트 데이터셋 5종 (`set01` ~ `set05`) 내장**:
-  - 웹 UI에서 클릭 한 번으로 `SC-001` ~ `SC-005` 실제 PDF 문서를 불러와 Upstage API 워크플로우를 즉시 실행·검증 가능
+- **최종 데이터셋 18케이스 (`set01` ~ `set18`) 내장**:
+  - `data/final/`의 PDF와 같은 파일을 `public/samples/`에 두고, 웹 UI에서 `SC-001` ~ `SC-018`을 불러와 워크플로우를 실행할 수 있음
 
 ---
 
@@ -59,7 +60,7 @@ src/
       Header.tsx             # 상단 내비게이션 바 (史劇Check 로고 및 메뉴)
       Footer.tsx             # 하단 푸터 및 1차 검수 도구 안내문
     upload/
-      PdfUploadPanel.tsx     # 드래그 앤 드롭 PDF 업로드 및 set01~set05 원클릭 로더
+      PdfUploadPanel.tsx     # 드래그 앤 드롭 PDF 업로드 및 샘플 원클릭 로더
     analysis/
       AnalysisProgressPanel.tsx # 실제 API 상태(uploading/queued/in_progress/completed) 표시 화면
     results/
@@ -69,11 +70,11 @@ src/
   lib/
     upstage.ts               # Upstage Files & Responses API 서버 통신 모듈
     result-parser.ts         # Instruct 노드 출력 정규화 및 방어적 파서
-    sample-datasets.ts       # 테스트 케이스 set01~set05 메타데이터
+    sample-datasets.ts       # 최종 데이터셋 set01~set18 메타데이터 (정답지 case_id · 판정 포함)
   types/
     verification.ts          # VerificationResult 등 핵심 타입 정의
 public/
-  samples/                   # 해커톤 검증용 실제 PDF 데이터셋 5종 (SC-001 ~ SC-005)
+  samples/                   # 최종 데이터셋 PDF 18개 (set01.pdf ~ set18.pdf = data/final/경크크_최종제출_setNN.pdf)
 ```
 
 ---
@@ -93,8 +94,9 @@ npm install
 
 ```env
 UPSTAGE_API_KEY=up_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-UPSTAGE_AGENT_ID=agt_BeWFUxUXkK7tzMpxscYduZ
-UPSTAGE_CONFIG_ID=1
+UPSTAGE_AGENT_ID=agt_bRU6jFjmhXuXGi8KLZucvp
+UPSTAGE_CONFIG_ID=4
+UPSTAGE_PROJECT_ID=proj_ReKt96vC6hC894rMxHpYih
 ```
 
 ### 3) 개발 서버 실행
@@ -107,14 +109,28 @@ npm run dev
 
 ---
 
-## 5. 테스트 케이스 (`set01` ~ `set05`) 검증 안내
+## 5. 테스트 케이스 (`set01` ~ `set18`)
 
-`/verify` 화면 하단(또는 메인 페이지 하단)에서 5종의 공식 테스트 데이터셋을 바로 불러와 검증할 수 있습니다.
+`/verify` 화면에서 최종 데이터셋 18케이스를 바로 불러와 실행할 수 있습니다.
+기대 판정은 정답지(`data/final/경크크_최종제출_answer.json`) 값이고, 케이스별 설명은 `src/lib/sample-datasets.ts`에 있습니다.
 
-| 세트 | 장면 번호 | 구성 내용 | 핵심 검증 포인트 |
-| :--- | :--- | :--- | :--- |
-| **Set 01** | `SC-001` | 제1화 대본 (세종 25년 겨울, 언문 28자 친제) + 『세종실록』 102권 사료 | 대본과 실록 사료의 사실관계 **일치** 검증 |
-| **Set 02** | `SC-002` | 제2화 대본 (최만리의 언문 찬성 상소) + 『세종실록』 103권 반대 상소 사료 | 실제 역사와 정반대인 서술에 대한 **충돌** 검증 |
-| **Set 03** | `SC-003` | 제3화 대본 (세종 28년 9월 훈민정음 완성) + 『세종실록』 113권 사료 + 검토 요청서 | 창제(1443)와 완성(1446) 시점 구분 및 실록 기사 **일치** 검증 |
-| **Set 04** | `SC-004` | 제4화 대본 (《운회》 번역) + 『세종실록』 103권 (세종 26년 2월 16일) 사료 | 대본 속 《운회》 번역 왕명과 『세종실록』 103권 기사의 **일치** 검증 |
-| **Set 05** | `SC-005` | 제5화 대본 (《운회》 번역 기록 대조) 단일 수록 (역사 사료 누락) | 역사 사료 누락(`missing_documents`) 감지 및 **검토 필요** 판정 검증 |
+| 세트 | case | 장면 | 작품 · 회차 | 문서 | 기대 판정 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| set01 | A | SC-001 | 백성의 글자 제1화 | 대본, 사료 | 일치 |
+| set02 | B | SC-002 | 백성의 글자 제2화 | 대본, 사료 | 충돌 |
+| set03 | C | SC-003 | 백성의 글자 제3화 | 대본, 사료, 검토 요청서 | 일치 |
+| set04 | D | SC-004 | 백성의 글자 제4화 | 대본, 사료 | 일치 |
+| set05 | E | SC-005 | 백성의 글자 제5화 | 대본 (사료 누락) | 검토 필요 |
+| set06 | F | SC-006 | 비를 재는 그릇 제1화 | 대본, 사료 | 일치 |
+| set07 | G | SC-007 | 숫자 하나의 차이 제1화 | 대본, 사료 | 충돌 |
+| set08 | H | SC-008 | 집현전의 검토표 제2화 | 대본, 사료 | 일치 |
+| set09 | I | SC-009 | 새로운 시험의 문턱 제2화 | 대본, 사료 | 충돌 |
+| set10 | J | SC-010 | 두 장의 공문 제3화 | 대본, 사료 2건 | 일치 |
+| set11 | K | SC-011 | 시험 공고의 수정 제3화 | 대본, 사료, 검토 요청서 | 충돌 |
+| set12 | L | SC-012 | 오래된 치수 기록 제4화 | 대본, 저품질 사료 | 검토 필요 |
+| set13 | M | SC-013 | 흐릿해진 지방 규정 제4화 | 대본, 저품질 사료 | 검토 필요 |
+| set14 | N | SC-014 | 사료 없는 밤 제5화 | 대본 (사료 누락) | 검토 필요 |
+| set15 | O | SC-015 | 잘못 붙은 첨부자료 제5화 | 대본, 무관한 사료 | 검토 필요 |
+| set16 | P | SC-016 | 별이 지는 담장 제2화 (퓨전) | 대본, 사료 2건 | 일치 |
+| set17 | Q | SC-017 | 암자의 스물여덟 글자 제5화 (퓨전) | 대본, 사료 | 충돌 |
+| set18 | R | SC-018 | 먹빛 결사 제7화 (퓨전) | 대본, 사료, 검토 요청서 | 검토 필요 |

@@ -8,7 +8,7 @@
 | 폴더 | 내용 |
 |---|---|
 | `mission2/` | 미션 2 제출본. 정답지와 데이터셋 5건(set01~05, 문서 10건) |
-| `final/` | 최종 제출본. 정답지 `경크크_최종제출_answer.json`과 PDF 18개(set01~18, 문서 39건). 현황은 `docs/FINAL_REVIEW.md` |
+| `final/` | 최종 제출본. 정답지 `경크크_최종제출_answer.json`과 PDF 18개(set01~18, 문서 39건). 현황은 `docs/FINAL_REVIEW.md`. 웹 서비스 샘플 `public/samples/setNN.pdf`는 이 PDF와 같은 파일 |
 
 ## 규칙
 
@@ -19,4 +19,4 @@
 ## mission2 참고
 
 - `경크크_미션2_set04.pdf`는 사료가 흐린 이미지인 **저품질 버전**이다(md5 `46d47db8592eb0c926dc4e71a8fef0f4`). 정답지 case D(`검토 필요`)는 이 파일 기준이다.
-- `public/samples/set04_sc004.pdf`는 사료가 깨끗한 다른 버전이라 이 정답지와 맞지 않는다. 자세한 내용은 [`docs/MISSION2_REVIEW.md`](../docs/MISSION2_REVIEW.md) 4절.
+- 사료가 깨끗한 다른 버전은 최종 데이터셋의 `final/경크크_최종제출_set04.pdf`(= `public/samples/set04.pdf`)이고, 최종 정답지 D(`일치`)의 기준이다. 미션 2 정답지와는 맞지 않는다. 자세한 내용은 [`docs/MISSION2_REVIEW.md`](../docs/MISSION2_REVIEW.md) 4절.
