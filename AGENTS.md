@@ -79,6 +79,8 @@
 | `docs/EVALUATION.md` | 해커톤 1차 온라인 심사 기준(원문), 다른 운영진 자료로 확인된 보충 사항, 팀 작업 지침 |
 | `docs/SUBMISSION.md` | 운영진 산출물 제출 가이드와 미션 2 보완 피드백 요약: 일정, 산출물 8종, 파일 이름, 작성 규칙 |
 | `docs/MISSION2_REVIEW.md` | 미션 2 산출물(워크플로우, 데이터셋, 정답지, 유형표, 설계서) 현황과 최종 제출 전 고칠 점 |
+| `docs/FINAL_REVIEW.md` | 최종 제출 산출물(워크플로우 v6, 정답지 15케이스, 유형표, 설계서, `data/final/`) 현황과 실행 전 위험 |
+| `docs/HANDOFF.md` | 세션 간 인수인계: 지금까지 한 일, 현재 상태, 다음에 할 일. 작업을 시작하면 먼저 읽는다 |
 | `docs/UPSTAGE_API.md` | Upstage Studio Agent API 안내 원문과 실제 호출로 확인한 응답 형식 |
 | `docs/VERIFY.md` | 정답지 자동 대조 스크립트(`npm run verify:answers`) 사용법 |
 | `data/README.md` | 정답지 · 데이터셋 폴더 구조와 규칙 |

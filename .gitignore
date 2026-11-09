@@ -49,3 +49,6 @@ Thumbs.db
 
 # Answer verification reports (scripts/verify-answers.ts)
 /verify-reports/
+
+# Windows download markers
+*:Zone.Identifier
