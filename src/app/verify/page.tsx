@@ -7,12 +7,16 @@ import { Footer } from "@/components/layout/Footer";
 import { PdfUploadPanel } from "@/components/upload/PdfUploadPanel";
 import { AnalysisProgressPanel } from "@/components/analysis/AnalysisProgressPanel";
 import { VerificationResultCard } from "@/components/results/VerificationResultCard";
-import { PdfDocumentViewer } from "@/components/pdf/PdfDocumentViewer";
-import { SAMPLE_DATASETS } from "@/lib/sample-datasets";
+import {
+  CitationFocus,
+  PdfDocumentViewer,
+} from "@/components/pdf/PdfDocumentViewer";
+import { SAMPLE_DATASETS, sampleUploadName } from "@/lib/sample-datasets";
 import {
   CreateVerifyApiResponse,
   JobStatus,
   PollJobApiResponse,
+  VerificationCitation,
   VerificationResult,
 } from "@/types/verification";
 import { ArrowLeft, BookOpen, FileText } from "lucide-react";
@@ -36,6 +40,16 @@ function VerifyWorkspaceContent() {
   const [verificationResult, setVerificationResult] =
     useState<VerificationResult | null>(null);
   const [rawApiResponse, setRawApiResponse] = useState<unknown>(null);
+  const [citationFocus, setCitationFocus] = useState<CitationFocus | null>(null);
+  const viewerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleCitationSelect = useCallback((citation: VerificationCitation) => {
+    setCitationFocus((prev) => ({ citation, nonce: (prev?.nonce ?? 0) + 1 }));
+    // Below the desktop breakpoint the viewer sits above the report: bring it into view.
+    if (window.innerWidth < 1024) {
+      viewerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,7 +69,7 @@ function VerifyWorkspaceContent() {
     return () => clearTimers();
   }, [clearTimers]);
 
-  // Preload sample dataset if ?sample=set01..set05 is in the URL
+  // Preload sample dataset if ?sample=set01..set18 is in the URL
   useEffect(() => {
     if (!sampleParam) return;
     const matched = SAMPLE_DATASETS.find(
@@ -70,11 +84,9 @@ function VerifyWorkspaceContent() {
         if (!res.ok) return;
         const blob = await res.blob();
         if (cancelled) return;
-        const file = new File(
-          [blob],
-          `${matched!.id}_${matched!.code}_백성의글자.pdf`,
-          { type: "application/pdf" }
-        );
+        const file = new File([blob], sampleUploadName(matched!), {
+          type: "application/pdf",
+        });
         setSelectedFile(file);
       } catch {
         // Ignore
@@ -182,6 +194,7 @@ function VerifyWorkspaceContent() {
     setErrorMessage(null);
     setVerificationResult(null);
     setRawApiResponse(null);
+    setCitationFocus(null);
     setElapsedSeconds(0);
     setJobId(null);
     setFileId(null);
@@ -233,6 +246,7 @@ function VerifyWorkspaceContent() {
     setErrorMessage(null);
     setVerificationResult(null);
     setRawApiResponse(null);
+    setCitationFocus(null);
   };
 
   return (
@@ -297,18 +311,24 @@ function VerifyWorkspaceContent() {
               <div className="flex items-center gap-2 text-xs text-ink">
                 <BookOpen className="h-4 w-4 text-pine shrink-0" />
                 <span className="font-semibold">
-                  원본 문서(대본·사료)와 AI 고증 검수 보고서 대조 열람
+                  원본 문서와 고증 검수 보고서 대조
                 </span>
               </div>
               <span className="text-xs text-ink-muted">
-                왼쪽 뷰어에서 대본과 실록 원문을 넘겨보며 오른쪽 판정 근거를 확인하세요
+                {verificationResult.documentSegments && verificationResult.documentSegments.length > 0
+                  ? "뷰어의 쪽 번호는 워크플로우가 나눈 문서별로 묶여 있습니다. 근거의 쪽 표시를 누르면 해당 위치로 이동합니다."
+                  : "왼쪽 뷰어에서 원문을 넘겨보며 오른쪽 판정 근거를 확인하세요."}
               </span>
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
               {/* Left Column: Original PDF Document Viewer */}
-              <div className="lg:col-span-6 lg:sticky lg:top-20 no-print">
-                <PdfDocumentViewer file={selectedFile} />
+              <div ref={viewerRef} className="lg:col-span-6 lg:sticky lg:top-20 scroll-mt-20 no-print">
+                <PdfDocumentViewer
+                  file={selectedFile}
+                  segments={verificationResult.documentSegments}
+                  focus={citationFocus}
+                />
               </div>
 
               {/* Right Column: AI Historical Verification Report */}
@@ -318,6 +338,8 @@ function VerifyWorkspaceContent() {
                   rawResponse={rawApiResponse}
                   fileName={selectedFile?.name || "document.pdf"}
                   onReset={handleResetToUpload}
+                  onCitationSelect={handleCitationSelect}
+                  activeCitationIndex={citationFocus?.citation.index ?? null}
                 />
               </div>
             </div>

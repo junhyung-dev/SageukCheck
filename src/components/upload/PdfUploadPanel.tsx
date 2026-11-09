@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { SAMPLE_DATASETS } from "@/lib/sample-datasets";
+import { SAMPLE_DATASETS, sampleUploadName } from "@/lib/sample-datasets";
+import { SampleCaseList } from "@/components/samples/SampleCaseList";
 import { SampleDataset } from "@/types/verification";
 import {
   Upload,
@@ -11,7 +12,6 @@ import {
   Play,
   RefreshCw,
   FolderOpen,
-  Sparkles,
   CheckCircle2,
 } from "lucide-react";
 
@@ -136,11 +136,9 @@ export function PdfUploadPanel({
         throw new Error("샘플 PDF 파일을 불러오지 못했습니다.");
       }
       const blob = await res.blob();
-      const file = new File(
-        [blob],
-        `${sample.id}_${sample.code}_백성의글자.pdf`,
-        { type: "application/pdf" }
-      );
+      const file = new File([blob], sampleUploadName(sample), {
+        type: "application/pdf",
+      });
       onSelectFile(file);
     } catch (err) {
       setLocalValidationError(
@@ -154,7 +152,7 @@ export function PdfUploadPanel({
   const activeError = localValidationError || errorMessage;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8">
       {/* Main Upload Card */}
       <div className="archive-corner-frame rounded-sm border border-border bg-hanji-card p-6 sm:p-10 shadow-archive-md">
         <div className="border-b border-border pb-6">
@@ -327,68 +325,27 @@ export function PdfUploadPanel({
         </div>
       </div>
 
-      {/* Test Cases (set01 ~ set05) Quick Load Section */}
+      {/* Final dataset cases (set01 ~ set18), grouped by expected decision */}
       <div className="rounded-sm border border-border bg-hanji-card p-6 sm:p-8 shadow-archive">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-pine">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>해커톤 공식 검증 데이터셋 (set01 ~ set05)</span>
-            </div>
-            <h2 className="mt-1 font-serif text-lg font-bold text-ink">
-              사전 준비된 테스트 케이스로 즉시 검증하기
-            </h2>
-          </div>
-          <span className="text-xs text-ink-muted">
-            클릭 시 해당 실제 PDF 파일이 업로드 영역에 로드됩니다
-          </span>
+        <div className="flex flex-col gap-1 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="font-serif text-lg font-bold text-ink">
+            준비된 18개 장면으로 바로 검수하기
+          </h2>
+          <p className="text-xs text-ink-muted">
+            판정별로 묶은 것은 정답지의 기대 판정입니다. 누르면 그 PDF가 위 업로드 칸에 들어갑니다.
+          </p>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {SAMPLE_DATASETS.map((sample) => {
-            const isSelected =
-              selectedFile?.name.startsWith(`${sample.id}_${sample.code}`) ??
-              false;
-            const isLoadingThis = loadingSampleId === sample.id;
-
-            return (
-              <button
-                key={sample.id}
-                type="button"
-                disabled={isSubmitting || isLoadingThis}
-                onClick={() => handleLoadSample(sample)}
-                className={`text-left flex flex-col justify-between rounded-sm border p-3.5 transition-all ${
-                  isSelected
-                    ? "border-pine bg-pine-light/50 ring-1 ring-pine"
-                    : "border-border bg-hanji/40 hover:border-pine/60 hover:bg-hanji"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono font-bold text-pine">
-                      {sample.id.toUpperCase()} · {sample.code}
-                    </span>
-                    <span className="text-[11px] text-ink-light">
-                      {sample.pages}p
-                    </span>
-                  </div>
-                  <p className="mt-1.5 font-serif text-xs font-bold text-ink line-clamp-1">
-                    {sample.episode}
-                  </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-ink-muted line-clamp-2">
-                    {sample.expectedPoint}
-                  </p>
-                </div>
-                <div className="mt-3 pt-2 border-t border-border/70 text-[11px] font-semibold text-pine">
-                  {isLoadingThis
-                    ? "PDF 불러오는 중..."
-                    : isSelected
-                    ? "✓ 현재 선택됨"
-                    : "이 문서 선택하기 →"}
-                </div>
-              </button>
-            );
-          })}
+        <div className="mt-6">
+          <SampleCaseList
+            mode="select"
+            selectedId={
+              SAMPLE_DATASETS.find((s) => selectedFile?.name === sampleUploadName(s))?.id ?? null
+            }
+            loadingId={loadingSampleId}
+            disabled={isSubmitting}
+            onSelect={handleLoadSample}
+          />
         </div>
       </div>
     </div>
