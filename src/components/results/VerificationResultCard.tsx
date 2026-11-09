@@ -7,6 +7,9 @@ import {
   CheckCircle2,
   ShieldAlert,
   AlertTriangle,
+  FileCheck2,
+  BookOpen,
+  FileSearch,
   Copy,
   Check,
   Printer,
@@ -73,6 +76,17 @@ function CitedText({
   return <>{parts}</>;
 }
 
+function SectionTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
+      <span className="text-pine" aria-hidden>
+        {icon}
+      </span>
+      {children}
+    </h3>
+  );
+}
+
 export function VerificationResultCard({
   result,
   rawResponse,
@@ -96,17 +110,20 @@ export function VerificationResultCard({
       case "일치":
         return {
           tone: "border-pine/40 bg-pine-light text-pine",
+          meaning: "대본의 역사 주장이 첨부한 사료 기록과 맞아요.",
           icon: <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />,
         };
       case "충돌":
         return {
           tone: "border-cinnabar/40 bg-cinnabar-light text-cinnabar",
+          meaning: "대본의 역사 주장이 첨부한 사료 기록과 달라요.",
           icon: <ShieldAlert className="h-5 w-5 shrink-0" aria-hidden />,
         };
       case "검토 필요":
       default:
         return {
           tone: "border-ochre-border bg-ochre-light text-ochre",
+          meaning: "첨부한 문서만으로는 판단할 수 없어요. 사람이 확인해 주세요.",
           icon: <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />,
         };
     }
@@ -138,75 +155,98 @@ export function VerificationResultCard({
     }
   };
 
-  const sectionTitle = "text-sm font-semibold text-ink";
-
   return (
     <div className="flex flex-col space-y-5 break-keep print-full-width">
       <article className="archive-corner-frame rounded-sm border border-border bg-hanji-card p-6 shadow-archive-md sm:p-8">
-        <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border pb-5">
-          <h2
-            className={`inline-flex items-center gap-2 rounded-sm border px-3.5 py-2 font-serif text-xl font-bold ${decisionStyle.tone}`}
-          >
-            {decisionStyle.icon}
-            <span>{result.decision}</span>
-          </h2>
-          <span className="text-sm font-medium tabular-nums text-ink-muted">
-            {result.sceneId}
-          </span>
+        <header className="border-b border-border pb-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <h2
+              className={`inline-flex items-center gap-2 rounded-sm border px-4 py-2 font-serif text-2xl font-bold ${decisionStyle.tone}`}
+            >
+              {decisionStyle.icon}
+              <span>{result.decision}</span>
+            </h2>
+            <span className="text-sm font-semibold tabular-nums text-ink-muted">
+              {result.sceneId}
+            </span>
+          </div>
+          <p className="mt-3 text-[15px] text-ink">{decisionStyle.meaning}</p>
         </header>
 
         {result.isUnstructuredFallback && (
-          <p className="mt-5 rounded-sm border border-ochre-border bg-ochre-light/60 px-4 py-3 text-sm text-ink">
+          <p className="mt-5 rounded-sm bg-ochre-light/70 px-4 py-3 text-sm text-ink">
             응답 형식이 예상과 달라서 받은 내용을 그대로 보여 드려요.
           </p>
         )}
 
-        <div className="mt-6 space-y-7">
-          <section className="space-y-2">
-            <h3 className={sectionTitle}>판정 근거</h3>
-            {canCite && annotatedReason && (
-              <p className="text-xs text-ink-muted">
-                쪽 번호를 누르면 원문에서 위치를 보여 줘요.
+        <div className="mt-7 space-y-7">
+          <section className="space-y-2.5">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <SectionTitle icon={<FileCheck2 className="h-4 w-4" />}>판정 근거</SectionTitle>
+              {canCite && annotatedReason && (
+                <span className="text-xs text-ink-muted">
+                  쪽 번호를 누르면 원문에서 위치를 보여 줘요
+                </span>
+              )}
+            </div>
+            <div className="rounded-sm bg-hanji/70 px-5 py-4">
+              <p className="whitespace-pre-line font-serif text-[15px] leading-[1.85] text-ink">
+                {canCite && annotatedReason ? (
+                  <CitedText
+                    text={annotatedReason}
+                    citations={citations}
+                    activeIndex={activeCitationIndex}
+                    onSelect={onCitationSelect}
+                  />
+                ) : (
+                  result.reason
+                )}
               </p>
-            )}
-            <p className="whitespace-pre-line font-serif text-[15px] leading-[1.85] text-ink">
-              {canCite && annotatedReason ? (
-                <CitedText
-                  text={annotatedReason}
-                  citations={citations}
-                  activeIndex={activeCitationIndex}
-                  onSelect={onCitationSelect}
-                />
-              ) : (
-                result.reason
-              )}
-            </p>
+            </div>
           </section>
 
-          <section className="space-y-2">
-            <h3 className={sectionTitle}>사료 출처</h3>
-            <p className="font-serif text-[15px] leading-relaxed text-ink">
-              {canCite && annotatedSource ? (
-                <CitedText
-                  text={annotatedSource}
-                  citations={citations}
-                  activeIndex={activeCitationIndex}
-                  onSelect={onCitationSelect}
-                />
-              ) : (
-                result.sourceReference
-              )}
-            </p>
+          <section className="space-y-2.5">
+            <SectionTitle icon={<BookOpen className="h-4 w-4" />}>사료 출처</SectionTitle>
+            <div className="rounded-sm bg-hanji/70 px-5 py-4">
+              <p className="font-serif text-[15px] font-semibold leading-relaxed text-ink">
+                {canCite && annotatedSource ? (
+                  <CitedText
+                    text={annotatedSource}
+                    citations={citations}
+                    activeIndex={activeCitationIndex}
+                    onSelect={onCitationSelect}
+                  />
+                ) : (
+                  result.sourceReference
+                )}
+              </p>
+            </div>
           </section>
 
-          <section className="space-y-2">
-            <h3 className={sectionTitle}>빠진 문서</h3>
+          <section className="space-y-2.5">
+            <SectionTitle icon={<FileSearch className="h-4 w-4" />}>빠진 문서</SectionTitle>
             {result.missingDocuments.length === 0 ? (
-              <p className="text-sm text-ink-muted">없어요</p>
+              <div className="flex items-center gap-2.5 rounded-sm bg-hanji/70 px-5 py-3.5 text-sm text-ink">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-pine" aria-hidden />
+                <span>없어요. 대본과 사료를 모두 찾았어요.</span>
+              </div>
             ) : (
-              <p className="text-sm font-semibold text-ink">
-                {result.missingDocuments.join(", ")}
-              </p>
+              <div className="rounded-sm bg-ochre-light/70 px-5 py-3.5">
+                <div className="flex items-center gap-2.5 text-sm text-ink">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-ochre" aria-hidden />
+                  <span>이 문서를 찾지 못했어요.</span>
+                </div>
+                <div className="mt-2.5 flex flex-wrap gap-2 pl-[26px]">
+                  {result.missingDocuments.map((doc) => (
+                    <span
+                      key={doc}
+                      className="rounded-sm border border-ochre-border bg-hanji-card px-2.5 py-1 text-sm font-semibold text-ink"
+                    >
+                      {doc}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </section>
         </div>

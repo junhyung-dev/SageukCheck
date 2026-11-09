@@ -99,23 +99,29 @@ function VerifyWorkspaceContent() {
     };
   }, [sampleParam]);
 
+  // 경과 시간은 "분석 시작"을 누른 순간부터 센다(업로드 시간 포함).
+  const startElapsedTimer = useCallback(() => {
+    const startedAt = Date.now();
+    setElapsedSeconds(0);
+    elapsedTimerRef.current = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+  }, []);
+
   const startPollingJob = useCallback(
     (activeJobId: string, activeFileId: string) => {
-      const startTime = Date.now();
+      // 시간 초과는 워크플로우 실행 요청이 끝난 뒤부터 잰다.
+      const pollStartedAt = Date.now();
 
-      elapsedTimerRef.current = setInterval(() => {
-        const secs = Math.floor((Date.now() - startTime) / 1000);
-        setElapsedSeconds(secs);
-        if (secs > MAX_POLL_TIME_SECONDS) {
+      const pollOnce = async () => {
+        if ((Date.now() - pollStartedAt) / 1000 > MAX_POLL_TIME_SECONDS) {
           clearTimers();
           setJobStatus("failed");
           setErrorMessage(
             "5분이 지나도 결과가 오지 않았어요. 잠시 뒤 다시 시도해 주세요."
           );
+          return;
         }
-      }, 1000);
-
-      const pollOnce = async () => {
         try {
           const query = activeFileId
             ? `?fileId=${encodeURIComponent(activeFileId)}`
@@ -198,6 +204,7 @@ function VerifyWorkspaceContent() {
     setFileId(null);
     setJobStatus("uploading");
     setViewStep("analyzing");
+    startElapsedTimer();
 
     try {
       const formData = new FormData();
@@ -213,6 +220,7 @@ function VerifyWorkspaceContent() {
       };
 
       if (!response.ok || !data.jobId) {
+        clearTimers();
         setJobStatus("failed");
         setErrorMessage(
           data.error ||
@@ -226,6 +234,7 @@ function VerifyWorkspaceContent() {
 
       startPollingJob(data.jobId, data.fileId);
     } catch {
+      clearTimers();
       setJobStatus("failed");
       setErrorMessage(
         "서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요."
