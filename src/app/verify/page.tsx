@@ -41,6 +41,9 @@ function VerifyWorkspaceContent() {
     useState<VerificationResult | null>(null);
   const [rawApiResponse, setRawApiResponse] = useState<unknown>(null);
   const [citationFocus, setCitationFocus] = useState<CitationFocus | null>(null);
+  // 진행 화면이 사라지는 동안 true. 끝나면 결과 화면으로 바꾼다.
+  const [isLeavingProgress, setIsLeavingProgress] = useState(false);
+  const leaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
 
   const handleCitationSelect = useCallback((citation: VerificationCitation) => {
@@ -62,6 +65,10 @@ function VerifyWorkspaceContent() {
     if (elapsedTimerRef.current) {
       clearInterval(elapsedTimerRef.current);
       elapsedTimerRef.current = null;
+    }
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
     }
   }, []);
 
@@ -167,10 +174,10 @@ function VerifyWorkspaceContent() {
               );
               return;
             }
+            // 결과 화면 전환은 진행 화면이 마지막 단계를 보여 준 뒤(handleProgressDone) 한다.
             setJobStatus("completed");
             setVerificationResult(data.result);
             setRawApiResponse(data.rawResponse ?? null);
-            setViewStep("result");
             return;
           }
 
@@ -196,6 +203,7 @@ function VerifyWorkspaceContent() {
     }
 
     clearTimers();
+    setIsLeavingProgress(false);
     setErrorMessage(null);
     setVerificationResult(null);
     setRawApiResponse(null);
@@ -242,8 +250,20 @@ function VerifyWorkspaceContent() {
     }
   };
 
+  // 진행 화면이 "결과 보기"까지 보여 준 뒤 불린다: 패널을 내보내고 결과 화면으로 바꾼다.
+  const handleProgressDone = useCallback(() => {
+    setIsLeavingProgress(true);
+    leaveTimerRef.current = setTimeout(() => {
+      leaveTimerRef.current = null;
+      setIsLeavingProgress(false);
+      setViewStep("result");
+      window.scrollTo({ top: 0 });
+    }, 220);
+  }, []);
+
   const handleResetToUpload = () => {
     clearTimers();
+    setIsLeavingProgress(false);
     setViewStep("upload");
     setJobStatus("uploading");
     setFileId(null);
@@ -254,7 +274,8 @@ function VerifyWorkspaceContent() {
   };
 
   const handleLeaveAnalysis = () => {
-    const isRunning = viewStep === "analyzing" && jobStatus !== "failed";
+    const isRunning =
+      viewStep === "analyzing" && jobStatus !== "failed" && jobStatus !== "completed";
     if (
       isRunning &&
       !window.confirm("분석을 그만두고 문서 고르기로 돌아갈까요? 지금 분석 결과는 받을 수 없어요.")
@@ -306,6 +327,8 @@ function VerifyWorkspaceContent() {
             errorMessage={errorMessage}
             onRetry={handleStartAnalysis}
             onCancelOrReset={handleResetToUpload}
+            onDone={handleProgressDone}
+            leaving={isLeavingProgress}
           />
         )}
 
@@ -314,7 +337,7 @@ function VerifyWorkspaceContent() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
               {/* Left Column: Original PDF Document Viewer */}
-              <div ref={viewerRef} className="lg:col-span-6 lg:sticky lg:top-20 scroll-mt-20 no-print">
+              <div ref={viewerRef} className="view-enter lg:col-span-6 lg:sticky lg:top-20 scroll-mt-20 no-print">
                 <PdfDocumentViewer
                   file={selectedFile}
                   segments={verificationResult.documentSegments}
@@ -323,7 +346,7 @@ function VerifyWorkspaceContent() {
               </div>
 
               {/* Right Column: AI Historical Verification Report */}
-              <div className="lg:col-span-6 print-full-width">
+              <div className="view-enter view-enter-late lg:col-span-6 print-full-width">
                 <VerificationResultCard
                   result={verificationResult}
                   rawResponse={rawApiResponse}

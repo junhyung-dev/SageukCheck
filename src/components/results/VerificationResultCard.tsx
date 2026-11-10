@@ -161,7 +161,7 @@ export function VerificationResultCard({
         <header className="border-b border-border pb-6">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <h2
-              className={`inline-flex items-center gap-2 rounded-sm border px-4 py-2 font-serif text-2xl font-bold ${decisionStyle.tone}`}
+              className={`seal-press inline-flex items-center gap-2 rounded-sm border px-4 py-2 font-serif text-2xl font-bold ${decisionStyle.tone}`}
             >
               {decisionStyle.icon}
               <span>{result.decision}</span>
