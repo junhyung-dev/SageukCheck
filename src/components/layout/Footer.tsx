@@ -29,10 +29,10 @@ export function Footer() {
               고증 검수 실행
             </Link>
             <Link
-              href="/#how-it-works"
+              href="/#samples"
               className="hover:text-ink transition-colors"
             >
-              워크플로우 안내
+              샘플 보기
             </Link>
             <span className="text-ink-light">
               Powered by Upstage Studio Agents API
