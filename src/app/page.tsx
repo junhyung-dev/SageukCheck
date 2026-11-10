@@ -157,7 +157,7 @@ export default function HomePage() {
                   준비된 장면 18개로 해 보기
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
-                  정통 사극과 퓨전 사극 대본에 실록 기사를 바탕으로 한 사료를 묶었어요. 사료가 빠졌거나 훼손된 장면도 있어요. 묶음 이름은 미리 정해 둔 정답이에요.
+                  정통 사극과 퓨전 사극 대본에 실록 기사를 바탕으로 한 사료를 묶었어요. 사료가 빠졌거나 훼손된 장면도 있어요. 탭 이름은 미리 정해 둔 정답이에요.
                 </p>
               </div>
               <Link

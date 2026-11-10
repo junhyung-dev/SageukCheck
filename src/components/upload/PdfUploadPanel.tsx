@@ -305,12 +305,12 @@ export function PdfUploadPanel({
 
       {/* Final dataset cases (set01 ~ set18), grouped by expected decision */}
       <div className="rounded-sm border border-border bg-hanji-card p-6 sm:p-8 shadow-archive">
-        <div className="flex flex-col gap-1 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <h2 className="font-serif text-lg font-bold text-ink">
             샘플로 해 보기
           </h2>
           <p className="text-xs text-ink-muted">
-            묶음 이름은 미리 정해 둔 정답이에요. 누르면 위 칸에 들어가요.
+            탭 이름은 미리 정해 둔 정답이에요. 누르면 위 칸에 들어가요.
           </p>
         </div>
 
