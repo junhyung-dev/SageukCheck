@@ -135,7 +135,7 @@ export default function HomePage() {
         </section>
 
         {/* What sets it apart */}
-        <section id="about" aria-label="사극체크의 특징" className="border-b border-border py-12 sm:py-16">
+        <section id="about" aria-label="사극체크의 특징" className="scroll-mt-16 border-b border-border py-12 sm:py-16">
           <ul className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 sm:px-6 md:grid-cols-3 md:gap-0 md:divide-x md:divide-border lg:px-8">
             {FEATURES.map((feature) => (
               <li key={feature.title} className="md:px-8 md:first:pl-0 md:last:pr-0">
