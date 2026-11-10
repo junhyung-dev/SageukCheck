@@ -57,10 +57,10 @@ export function Header() {
             |
           </span>
           <Link
-            href="/#how-it-works"
+            href="/#samples"
             className="px-2.5 py-1.5 rounded-sm transition-colors hover:text-ink hover:bg-hanji-dark/60"
           >
-            사용 방법
+            샘플 보기
           </Link>
 
           {!isVerifyPage && (
