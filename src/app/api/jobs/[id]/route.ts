@@ -16,7 +16,7 @@ export async function GET(
 
     if (!jobId) {
       return NextResponse.json(
-        { error: "조회할 Job ID가 지정되지 않았습니다.", code: "MISSING_JOB_ID" },
+        { error: "조회할 작업 번호가 없어요.", code: "MISSING_JOB_ID" },
         { status: 400 }
       );
     }
@@ -32,7 +32,7 @@ export async function GET(
         status: "failed",
         error:
           jobData.error?.message ||
-          "Upstage Studio 워크플로우 작업 실행이 실패(failed)했습니다. 문서 구성을 확인하거나 다시 시도해 주세요.",
+          "워크플로우 실행이 실패했어요. 대본과 사료가 한 PDF에 들어 있는지 확인하고 다시 시도해 주세요.",
         rawResponse: jobData,
       });
     }
@@ -71,7 +71,7 @@ export async function GET(
       {
         error:
           (error as Error)?.message ||
-          "작업 상태 조회 중 서버 오류가 발생했습니다.",
+          "진행 상태를 확인하는 중에 서버 오류가 났어요.",
         code: "INTERNAL_POLL_ERROR",
       },
       { status: 500 }

@@ -25,7 +25,7 @@ export function getUpstageConfig() {
 
   if (!apiKey || apiKey === "up_your_api_key_here") {
     throw new UpstageApiError(
-      "서버에 UPSTAGE_API_KEY 환경 변수가 설정되지 않았습니다. .env.local 또는 환경 변수를 확인해 주세요.",
+      "서버에 UPSTAGE_API_KEY가 설정되어 있지 않아요. 환경 변수를 확인해 주세요.",
       401,
       "MISSING_API_KEY"
     );
@@ -55,22 +55,22 @@ function buildUpstageHeaders(
 function mapStatusToKoreanMessage(status: number, detail?: string): string {
   switch (status) {
     case 401:
-      return "Upstage API 인증에 실패했습니다(401). UPSTAGE_API_KEY가 유효한지 확인해 주세요.";
+      return "Upstage API 인증에 실패했어요(401). UPSTAGE_API_KEY를 확인해 주세요.";
     case 404:
-      return "요청한 Agent 또는 Job을 찾을 수 없습니다(404). Agent ID 및 Job ID를 확인해 주세요.";
+      return "워크플로우나 작업을 찾지 못했어요(404). 설정된 에이전트 ID와 설정 번호를 확인해 주세요.";
     case 413:
-      return "업로드한 문서 용량이 허용 한도(최대 500MB, 1,000페이지)를 초과했습니다(413).";
+      return "문서가 너무 커서 받지 못했어요(413). 더 작은 PDF로 다시 시도해 주세요.";
     case 429:
-      return "API 요청 한도를 초과했습니다(429). 잠시 후 다시 시도해 주세요.";
+      return "요청이 너무 많아요(429). 잠시 뒤에 다시 시도해 주세요.";
     case 500:
     case 502:
     case 503:
     case 504:
-      return `Upstage 서버에서 일시적인 오류가 발생했습니다(${status}). 잠시 후 다시 시도해 주세요.`;
+      return `Upstage 서버에 잠깐 문제가 생겼어요(${status}). 잠시 뒤에 다시 시도해 주세요.`;
     default:
       return detail
-        ? `Upstage API 요청 중 오류가 발생했습니다(${status}): ${detail}`
-        : `Upstage API 요청 중 오류가 발생했습니다(상태 코드: ${status}).`;
+        ? `Upstage API 요청이 실패했어요(${status}): ${detail}`
+        : `Upstage API 요청이 실패했어요(${status}).`;
   }
 }
 
@@ -114,7 +114,7 @@ export async function uploadFileToUpstage(
     const data = (await response.json()) as { id?: string };
     if (!data?.id) {
       throw new UpstageApiError(
-        "Upstage Files API 응답에 파일 ID(id)가 포함되지 않았습니다.",
+        "파일을 올렸지만 Upstage가 파일 번호를 돌려주지 않았어요. 다시 시도해 주세요.",
         500,
         "INVALID_FILE_RESPONSE"
       );
@@ -125,13 +125,13 @@ export async function uploadFileToUpstage(
     if (error instanceof UpstageApiError) throw error;
     if ((error as Error)?.name === "AbortError") {
       throw new UpstageApiError(
-        "문서 업로드 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해 주세요.",
+        "문서를 올리는 데 시간이 너무 오래 걸렸어요. 인터넷 연결을 확인하고 다시 시도해 주세요.",
         504,
         "UPLOAD_TIMEOUT"
       );
     }
     throw new UpstageApiError(
-      `문서 업로드 중 네트워크 오류가 발생했습니다: ${(error as Error).message}`,
+      `문서를 올리는 중에 연결이 끊겼어요: ${(error as Error).message}`,
       500,
       "UPLOAD_NETWORK_ERROR"
     );
@@ -191,7 +191,7 @@ export async function createVerificationJob(
     const data = (await response.json()) as UpstageJobResponse;
     if (!data?.id) {
       throw new UpstageApiError(
-        "Upstage Studio 워크플로우 실행 요청 응답에 Job ID가 없습니다.",
+        "워크플로우 실행을 요청했지만 작업 번호를 받지 못했어요. 다시 시도해 주세요.",
         500,
         "INVALID_JOB_RESPONSE"
       );
@@ -202,13 +202,13 @@ export async function createVerificationJob(
     if (error instanceof UpstageApiError) throw error;
     if ((error as Error)?.name === "AbortError") {
       throw new UpstageApiError(
-        "워크플로우 작업 생성 요청 시간이 초과되었습니다.",
+        "워크플로우 실행을 요청하는 데 시간이 너무 오래 걸렸어요. 다시 시도해 주세요.",
         504,
         "CREATE_JOB_TIMEOUT"
       );
     }
     throw new UpstageApiError(
-      `워크플로우 실행 요청 중 오류가 발생했습니다: ${(error as Error).message}`,
+      `워크플로우 실행을 요청하는 중에 연결이 끊겼어요: ${(error as Error).message}`,
       500,
       "CREATE_JOB_NETWORK_ERROR"
     );
@@ -255,13 +255,13 @@ export async function retrieveVerificationJob(
     if (error instanceof UpstageApiError) throw error;
     if ((error as Error)?.name === "AbortError") {
       throw new UpstageApiError(
-        "작업 상태 조회 시간이 초과되었습니다. 잠시 후 다시 조회합니다.",
+        "진행 상태를 확인하는 데 시간이 오래 걸리고 있어요. 잠시 뒤에 다시 확인해요.",
         504,
         "POLL_TIMEOUT"
       );
     }
     throw new UpstageApiError(
-      `작업 상태 조회 중 네트워크 오류가 발생했습니다: ${(error as Error).message}`,
+      `진행 상태를 확인하는 중에 연결이 끊겼어요: ${(error as Error).message}`,
       500,
       "POLL_NETWORK_ERROR"
     );

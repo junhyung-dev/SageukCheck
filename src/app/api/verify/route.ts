@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!file || !(file instanceof File)) {
       return NextResponse.json(
         {
-          error: "업로드할 PDF 파일이 전달되지 않았습니다. 파일을 선택한 후 다시 시도해 주세요.",
+          error: "PDF 파일이 오지 않았어요. 파일을 고른 뒤 다시 시도해 주세요.",
           code: "NO_FILE_UPLOADED",
         },
         { status: 400 }
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     if (!isPdfMime && !isPdfExt) {
       return NextResponse.json(
         {
-          error: `지원하지 않는 파일 형식입니다(${file.type || "알 수 없음"}). PDF 문서(.pdf)만 업로드할 수 있습니다.`,
+          error: "PDF 파일만 올릴 수 있어요.",
           code: "INVALID_FILE_TYPE",
         },
         { status: 400 }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (file.size === 0) {
       return NextResponse.json(
         {
-          error: "빈 파일(0 byte)은 업로드할 수 없습니다. 정상적인 PDF 문서를 선택해 주세요.",
+          error: "빈 파일이에요. 다른 PDF를 골라 주세요.",
           code: "EMPTY_FILE",
         },
         { status: 400 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
         {
-          error: "파일 크기가 최대 허용 한도(500MB)를 초과했습니다.",
+          error: "파일이 500MB를 넘어요. 더 작은 PDF를 골라 주세요.",
           code: "FILE_TOO_LARGE",
         },
         { status: 413 }
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       {
         error:
           (error as Error)?.message ||
-          "문서 업로드 및 고증 워크플로우 요청 중 예기치 않은 서버 오류가 발생했습니다.",
+          "문서를 보내는 중에 서버 오류가 났어요. 다시 시도해 주세요.",
         code: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 }
