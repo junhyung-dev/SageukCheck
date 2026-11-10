@@ -218,9 +218,6 @@ export function AnalysisProgressPanel({
                             </li>
                           ))}
                         </ol>
-                        <p className="mt-3 border-t border-border/70 pt-2.5 text-xs text-ink-muted">
-                          세 과정은 Studio 워크플로우 안에서 한 번에 이어서 진행돼요.
-                        </p>
                       </div>
                     )}
                   </div>
