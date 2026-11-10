@@ -191,7 +191,7 @@ function VerifyWorkspaceContent() {
 
   const handleStartAnalysis = async () => {
     if (!selectedFile) {
-      setErrorMessage("먼저 업로드할 PDF 파일을 선택해 주세요.");
+      setErrorMessage("PDF를 먼저 올리거나 아래 샘플을 골라 주세요.");
       return;
     }
 

@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ScrollText, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+const NAV_LINK =
+  "whitespace-nowrap rounded-sm px-2.5 py-1.5 transition-colors hover:bg-hanji-dark/60 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-pine";
 
 export function Header() {
   const pathname = usePathname();
@@ -10,11 +13,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-hanji/95 backdrop-blur-sm no-print">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Brand Logo */}
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="group flex items-center gap-3 focus:outline-none"
+          className="group flex shrink-0 items-center gap-2.5 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-pine"
         >
           <span
             aria-hidden="true"
@@ -22,57 +24,30 @@ export function Header() {
           >
             史
           </span>
-          <div className="flex items-baseline gap-2">
-            <span className="font-serif text-xl font-bold tracking-tight text-ink">
-              史劇Check
-            </span>
-            <span className="hidden text-xs font-medium text-ink-muted sm:inline-block">
-              사극체크 · 역사 고증 검수소
-            </span>
-          </div>
+          <span className="whitespace-nowrap font-serif text-lg font-bold tracking-tight text-ink sm:text-xl">
+            史劇Check
+          </span>
         </Link>
 
-        {/* Right: Navigation Links */}
-        <nav className="flex items-center gap-1 sm:gap-6 text-sm font-medium text-ink-muted">
-          <Link
-            href="/#about"
-            className="px-2.5 py-1.5 rounded-sm transition-colors hover:text-ink hover:bg-hanji-dark/60"
-          >
-            서비스 소개
+        <nav className="flex items-center gap-1 text-sm font-medium text-ink-muted sm:gap-3">
+          <Link href="/#about" className={NAV_LINK}>
+            소개
           </Link>
-          <span className="text-border select-none" aria-hidden="true">
-            |
-          </span>
+          <Link href="/#samples" className={NAV_LINK}>
+            샘플
+          </Link>
           <Link
             href="/verify"
-            className={`px-2.5 py-1.5 rounded-sm transition-colors ${
+            aria-current={isVerifyPage ? "page" : undefined}
+            className={`ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-pine focus-visible:ring-offset-2 focus-visible:ring-offset-hanji sm:px-4 ${
               isVerifyPage
-                ? "text-pine font-semibold bg-pine-light/70"
-                : "hover:text-ink hover:bg-hanji-dark/60"
+                ? "bg-pine-light text-pine"
+                : "bg-pine text-white hover:bg-pine-hover"
             }`}
           >
-            고증 검수
+            검수 시작
+            {!isVerifyPage && <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />}
           </Link>
-          <span className="text-border select-none" aria-hidden="true">
-            |
-          </span>
-          <Link
-            href="/#samples"
-            className="px-2.5 py-1.5 rounded-sm transition-colors hover:text-ink hover:bg-hanji-dark/60"
-          >
-            샘플 보기
-          </Link>
-
-          {!isVerifyPage && (
-            <Link
-              href="/verify"
-              className="ml-2 hidden md:inline-flex items-center gap-1.5 rounded-sm bg-pine px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-pine-hover"
-            >
-              <ScrollText className="h-3.5 w-3.5" />
-              <span>검수 시작</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          )}
         </nav>
       </div>
     </header>

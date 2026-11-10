@@ -22,7 +22,7 @@ const DECISION_STYLE: Record<
   "검토 필요": {
     text: "text-ochre",
     rule: "border-ochre",
-    note: "사료 누락 · 판독 불가 · 다른 사건 · 기록 없음",
+    note: "사료 누락, 판독 불가, 다른 사건, 기록 없음",
   },
 };
 
@@ -36,7 +36,7 @@ function shortDocuments(documents: string[]): string {
       .replace("역사 사료", "사료");
     counts.set(label, (counts.get(label) ?? 0) + 1);
   }
-  return Array.from(counts, ([label, n]) => (n > 1 ? `${label} ${n}건` : label)).join(" · ");
+  return Array.from(counts, ([label, n]) => (n > 1 ? `${label} ${n}건` : label)).join(", ");
 }
 
 type SampleCaseListProps =
@@ -86,8 +86,10 @@ export function SampleCaseList(props: SampleCaseListProps) {
                         {sample.code}
                       </span>
                     </span>
-                    <span className="mt-1 block break-keep text-xs text-ink-muted">
-                      {sample.title} · {shortDocuments(sample.documents)} · {sample.pages}쪽
+                    <span className="mt-1 flex flex-wrap gap-x-3 break-keep text-xs text-ink-muted">
+                      <span>{sample.title}</span>
+                      <span>{shortDocuments(sample.documents)}</span>
+                      <span className="tabular-nums">{sample.pages}쪽</span>
                     </span>
                   </>
                 );
@@ -130,7 +132,7 @@ export function SampleCaseList(props: SampleCaseListProps) {
                               PDF 불러오는 중
                             </>
                           ) : (
-                            "선택됨 · 위에서 분석을 시작하세요"
+                            "골랐어요. 위에서 판정을 시작해 주세요."
                           )}
                         </span>
                       )}

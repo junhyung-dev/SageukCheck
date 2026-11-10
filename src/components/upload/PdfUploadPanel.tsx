@@ -63,21 +63,21 @@ export function PdfUploadPanel({
 
     if (!isPdfMime && !isPdfExt) {
       setLocalValidationError(
-        `지원하지 않는 파일 형식입니다(${file.name}). PDF 형식(.pdf)의 문서만 업로드할 수 있습니다.`
+        "PDF 파일만 올릴 수 있어요."
       );
       return;
     }
 
     if (file.size === 0) {
       setLocalValidationError(
-        "파일 크기가 0B입니다. 정상적인 PDF 문서를 업로드해 주세요."
+        "빈 파일이에요. 다른 PDF를 골라 주세요."
       );
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setLocalValidationError(
-        `파일 크기가 허용 한도(500MB)를 초과했습니다(${formatFileSize(file.size)}).`
+        `파일이 500MB를 넘어요(${formatFileSize(file.size)}). 더 작은 PDF를 골라 주세요.`
       );
       return;
     }
@@ -117,7 +117,7 @@ export function PdfUploadPanel({
 
     if (droppedFiles.length > 1) {
       setLocalValidationError(
-        "현재 워크플로우는 대본과 역사 사료가 하나로 결합된 단일 PDF 파일 업로드를 지원합니다. 파일 1개만 선택해 주세요."
+        "PDF는 한 번에 하나만 올릴 수 있어요. 대본과 사료를 한 파일로 묶어 주세요."
       );
       return;
     }
@@ -133,7 +133,7 @@ export function PdfUploadPanel({
 
       const res = await fetch(sample.filename);
       if (!res.ok) {
-        throw new Error("샘플 PDF 파일을 불러오지 못했습니다.");
+        throw new Error("샘플 PDF를 불러오지 못했어요. 다시 눌러 주세요.");
       }
       const blob = await res.blob();
       const file = new File([blob], sampleUploadName(sample), {
@@ -142,7 +142,7 @@ export function PdfUploadPanel({
       onSelectFile(file);
     } catch (err) {
       setLocalValidationError(
-        (err as Error).message || "샘플 파일을 불러오는 중 오류가 발생했습니다."
+        (err as Error).message || "샘플 PDF를 불러오지 못했어요. 다시 눌러 주세요."
       );
     } finally {
       setLoadingSampleId(null);
@@ -152,21 +152,15 @@ export function PdfUploadPanel({
   const activeError = localValidationError || errorMessage;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8 break-keep">
       {/* Main Upload Card */}
       <div className="archive-corner-frame rounded-sm border border-border bg-hanji-card p-6 sm:p-10 shadow-archive-md">
         <div className="border-b border-border pb-6">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold text-pine mb-2">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-pine text-white font-serif text-[11px]">
-              檢
-            </span>
-            <span>AI 역사 고증 문서 업로드</span>
-          </div>
           <h1 className="font-serif text-2xl font-bold text-ink sm:text-3xl">
-            검토할 사극 대본과 역사 사료를 업로드하세요.
+            검수할 PDF를 올려 주세요.
           </h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            사극 대본과 대조할 역사 사료(조선왕조실록 기사, 고증 검토 요청서 등)가 하나로 결합된 PDF 문서를 업로드하면 Upstage Studio 워크플로우가 즉시 실행됩니다.
+          <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+            대본과 사료를 PDF 하나로 묶어 주세요. 검토 요청서가 있으면 같이 넣어도 돼요.
           </p>
         </div>
 
@@ -177,11 +171,8 @@ export function PdfUploadPanel({
             className="mt-6 flex items-start justify-between gap-3 rounded-sm border border-cinnabar/40 bg-cinnabar-light p-4 text-sm text-cinnabar"
           >
             <div className="flex items-start gap-2.5">
-              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold">문서 검증 또는 요청 오류</p>
-                <p className="text-xs leading-relaxed text-ink">{activeError}</p>
-              </div>
+              <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <p className="leading-relaxed text-ink">{activeError}</p>
             </div>
             <button
               type="button"
@@ -223,11 +214,9 @@ export function PdfUploadPanel({
                 <Upload className="h-6 w-6" />
               </div>
               <p className="mt-4 font-serif text-base font-bold text-ink sm:text-lg">
-                PDF 문서를 이곳에 끌어다 놓거나 클릭하여 선택하세요
+                PDF를 여기에 끌어다 놓으세요
               </p>
-              <p className="mt-1.5 text-xs text-ink-muted">
-                지원 형식: PDF (.pdf) · 최대 파일 크기: 500MB · 최대 1,000페이지
-              </p>
+              <p className="mt-1.5 text-xs text-ink-muted">500MB까지 올릴 수 있어요.</p>
               <div className="mt-6">
                 <button
                   type="button"
@@ -237,8 +226,8 @@ export function PdfUploadPanel({
                   }}
                   className="inline-flex items-center gap-2 rounded-sm border border-border-strong bg-hanji-card px-5 py-2.5 text-xs font-semibold text-ink shadow-archive transition-colors hover:bg-hanji-dark"
                 >
-                  <FolderOpen className="h-4 w-4 text-pine" />
-                  <span>컴퓨터에서 PDF 파일 선택</span>
+                  <FolderOpen className="h-4 w-4 text-pine" aria-hidden="true" />
+                  <span>파일 고르기</span>
                 </button>
               </div>
             </div>
@@ -253,8 +242,8 @@ export function PdfUploadPanel({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 rounded-sm bg-pine/10 px-2 py-0.5 text-[11px] font-semibold text-pine">
-                        <CheckCircle2 className="h-3 w-3" />
-                        업로드 준비 완료
+                        <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                        준비됐어요
                       </span>
                       <span className="text-xs text-ink-muted">
                         {formatFileSize(selectedFile.size)}
@@ -262,9 +251,6 @@ export function PdfUploadPanel({
                     </div>
                     <p className="mt-1 font-serif text-base font-bold text-ink break-all">
                       {selectedFile.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-ink-muted">
-                      문서 형식: PDF 문서 · 대본 및 역사 사료 통합 검수 대상
                     </p>
                   </div>
                 </div>
@@ -277,7 +263,7 @@ export function PdfUploadPanel({
                     className="inline-flex items-center gap-1.5 rounded-sm border border-border-strong bg-hanji-card px-3.5 py-2 text-xs font-medium text-ink transition-colors hover:bg-hanji-dark disabled:opacity-50"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
-                    <span>파일 교체</span>
+                    <span>다른 파일</span>
                   </button>
                   <button
                     type="button"
@@ -295,15 +281,7 @@ export function PdfUploadPanel({
         </div>
 
         {/* Submit Button */}
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border pt-6">
-          <div className="text-xs text-ink-muted space-y-0.5">
-            <p className="font-medium text-ink">
-              Upstage Studio 워크플로우 연동 안내
-            </p>
-            <p>
-              버튼을 누르면 PDF가 Upstage Files API로 업로드된 후 Agent 워크플로우가 실시간 실행됩니다.
-            </p>
-          </div>
+        <div className="mt-8 flex flex-col sm:flex-row sm:justify-end border-t border-border pt-6">
 
           <button
             type="button"
@@ -311,7 +289,7 @@ export function PdfUploadPanel({
             onClick={() => {
               if (!selectedFile) {
                 setLocalValidationError(
-                  "먼저 검토할 사극 대본 및 역사 사료 PDF 파일을 업로드하거나 아래 테스트 문서를 선택해 주세요."
+                  "PDF를 먼저 올리거나 아래 샘플을 골라 주세요."
                 );
                 return;
               }
@@ -319,8 +297,8 @@ export function PdfUploadPanel({
             }}
             className="inline-flex items-center justify-center gap-2.5 rounded-sm bg-pine px-7 py-4 text-sm font-semibold text-white shadow-archive transition-all hover:bg-pine-hover disabled:cursor-not-allowed disabled:opacity-60 shrink-0"
           >
-            <Play className="h-4 w-4 fill-current" />
-            <span>AI 역사 고증 분석 시작</span>
+            <Play className="h-4 w-4 fill-current" aria-hidden="true" />
+            <span>판정 시작</span>
           </button>
         </div>
       </div>
@@ -329,10 +307,10 @@ export function PdfUploadPanel({
       <div className="rounded-sm border border-border bg-hanji-card p-6 sm:p-8 shadow-archive">
         <div className="flex flex-col gap-1 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
           <h2 className="font-serif text-lg font-bold text-ink">
-            준비된 18개 장면으로 바로 검수하기
+            샘플로 해 보기
           </h2>
           <p className="text-xs text-ink-muted">
-            판정별로 묶은 것은 정답지의 기대 판정입니다. 누르면 그 PDF가 위 업로드 칸에 들어갑니다.
+            묶음 이름은 미리 정해 둔 정답이에요. 누르면 위 칸에 들어가요.
           </p>
         </div>
 

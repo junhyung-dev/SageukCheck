@@ -298,7 +298,7 @@ export function PdfDocumentViewer({ file, segments, focus }: PdfDocumentViewerPr
   if (!file) {
     return (
       <div className="flex h-96 items-center justify-center rounded-sm border border-border bg-hanji-card p-6 text-sm text-ink-muted">
-        표시할 원본 PDF 문서가 없습니다.
+        표시할 PDF가 없어요.
       </div>
     );
   }
